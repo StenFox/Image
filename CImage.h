@@ -20,18 +20,21 @@ enum mtProcessingEdgeEffects
 class CImage
 {
 public:
-    CImage(QString _fileName);
+    CImage( QString _fileName );
     QImage getImage();
     QImage getOriginalImage();
 
     // Размытие по Гауссу
-    void GaussianBlur(float _sigma);
+    void gaussianBlur( float _sigma, mtProcessingEdgeEffects _method = mtBlackEdge );
 
     // Оператор Собеля
-    void Sobel();
+    void sobel( mtProcessingEdgeEffects _method = mtBlackEdge  );
 
     // Билинейная интреполяция уменьшаем изображение в 2 раза
     void resizeTwo();
+
+    // Перезагрузка изображения
+    void reloadImage();
 private:
 
     // Ядро Собель по X
@@ -53,21 +56,25 @@ private:
     std::vector<int> m_myImage;
 
     // Функция перевода изображения в оттенки серого
-    void GrayScale(QImage _image);
+    void grayScale( QImage _image );
 
     // Магнитуда или вычисление Величины градиента
-    void magnitude(std::vector<int>& input, const std::vector<int>& gx, const std::vector<int>& gy);
+    void magnitude( std::vector<int>& _input, const std::vector<int>& _gx, const std::vector<int>& _gy );
 
     // Свёртка, на вход подаём ядро cвёртки и метод для обработки краевых эффектов
-    std::vector<int> convolution(CMatrixV<auto> kernel, mtProcessingEdgeEffects _method = mtBlackEdge );
+    std::vector<int> convolution(CMatrixV<auto> kernel, mtProcessingEdgeEffects _method );
 
-    float gaussian(int _x,float _s);
+    // Вычисление Гауссиана
+    float gaussian( int _x,float _s );
 
-    std::vector<float> GaussianKernel(float _sigma);
+    // Ядро фильтра гаусса
+    std::vector<float> gaussianKernel( float _sigma );
 
-    void ConvolutionForGauss(float _sigma);
+    // Две последовательных свёртки для ускорния
+    void convolutionForGauss( float _sigma, mtProcessingEdgeEffects _method );
 
-    std::vector<int> resizeBilinear(std::vector<int> pixels, int w, int h, int w2, int h2);
+    // Билинейная интерполяция
+    std::vector<int> resizeBilinear( std::vector<int> _image, int _widthOld, int heightOld, int _widthNew, int heightNew );
 };
 
 #endif // CIMAGE_H

@@ -9,6 +9,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    ui->M_EdgeComboBox->insertItem( 0, "'Чёрные' границы" );
+    ui->M_EdgeComboBox->insertItem( 1, "Копирование границ" );
+    ui->M_EdgeComboBox->insertItem( 2, "Тор" );
 }
 
 MainWindow::~MainWindow()
@@ -18,20 +21,26 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_LoadImageButton_clicked()
 {
-    QString fileName = QFileDialog::getOpenFileName(this,"Open Image",nullptr,"Image files (*.png *.jpg *.bmp)");
-    myImage = new CImage(fileName);
-    ui->label->setPixmap( QPixmap::fromImage(myImage->getImage()));
-    ui->label_2->setPixmap( QPixmap::fromImage(myImage->getOriginalImage()));
+    QString fileName = QFileDialog::getOpenFileName( this,"Open Image",nullptr,"Image files (*.png *.jpg *.bmp)" );
+    myImage = new CImage( fileName );
+    ui->label->setPixmap( QPixmap::fromImage( myImage->getImage() ) );
+    ui->label_2->setPixmap( QPixmap::fromImage( myImage->getOriginalImage() ) );
 }
 
 void MainWindow::on_GaussBlurButton_clicked()
 {
-    myImage->GaussianBlur(ui->doubleSpinBox->value());
-    ui->label->setPixmap( QPixmap::fromImage(myImage->getImage()));
+    myImage->gaussianBlur( ui->doubleSpinBox->value(), ( mtProcessingEdgeEffects )ui->M_EdgeComboBox->currentIndex() );
+    ui->label->setPixmap( QPixmap::fromImage( myImage->getImage() ) );
 }
 
 void MainWindow::on_SobelButton_clicked()
 {
-    myImage->Sobel();
-    ui->label->setPixmap( QPixmap::fromImage(myImage->getImage()));
+    myImage->sobel( ( mtProcessingEdgeEffects )ui->M_EdgeComboBox->currentIndex() );
+    ui->label->setPixmap( QPixmap::fromImage( myImage->getImage() ) );
+}
+
+void MainWindow::on_ReloadImageButton_clicked()
+{
+    myImage->reloadImage();
+    ui->label->setPixmap( QPixmap::fromImage( myImage->getImage() ) );
 }

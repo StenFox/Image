@@ -17,11 +17,11 @@ CImage::CImage( QString _fileName )
 
     m_myImage.reserve( m_height * m_width );
 
-    GrayScale( m_originalImage );
+    grayScale( m_originalImage );
 }
 
 //-----------------------------------------------------------------------------------
-void CImage::GrayScale( QImage _image )
+void CImage::grayScale( QImage _image )
 {
     Q_ASSERT( _image.format() == QImage::Format_RGB32 );
     for( int i = 0; i < _image.height(); i++ )
@@ -38,27 +38,27 @@ void CImage::GrayScale( QImage _image )
 }
 
 //-----------------------------------------------------------------------------------
-void CImage::Sobel()
+void CImage::sobel( mtProcessingEdgeEffects _method )
 {
-    magnitude( m_myImage, convolution( g_sobelX,mtBlackEdge ), convolution( g_sobelY,mtThor ) );
+    magnitude( m_myImage, convolution( g_sobelX, _method ), convolution( g_sobelY, _method ) );
 }
 
 //-----------------------------------------------------------------------------------
 void CImage::resizeTwo()
 {
-    m_myImage = resizeBilinear(m_myImage,m_width,m_height,m_width/2,m_height/2);
+    m_myImage = resizeBilinear( m_myImage, m_width, m_height, m_width/2, m_height/2 );
     m_height /= 2;
     m_width /= 2;
 }
 
 //-----------------------------------------------------------------------------------
-void CImage::magnitude(vector<int>& _input, const vector<int>& gx, const vector<int>& gy)
+void CImage::magnitude(vector<int>& _input, const vector<int>& _gx, const vector<int>& _gy)
 {
-    for (int y = 0; y < m_height; y++)
+    for ( auto y = 0; y < m_height; y++ )
     {
-        for (int x = 0; x < m_width; x++)
+        for ( auto x = 0; x < m_width; x++ )
         {
-            _input[ y * m_width + x ] = qBound(0x00, static_cast<int>(hypot(gx[y * m_width + x], gy[y * m_width + x])), 0xFF);
+            _input[ y * m_width + x ] = qBound( 0x00, static_cast<int>( hypot ( _gx[ y * m_width + x ], _gy[ y * m_width + x ] ) ), 0xFF );
         }
     }
 }
@@ -89,7 +89,7 @@ vector<int> CImage::convolution(CMatrixV<auto> _kernel, mtProcessingEdgeEffects 
                 }
                 for (auto i = 0; i < kw; i++)
                 {
-                    if ((x + i < offsetx || x + i >= m_width))
+                    if ( (x + i < offsetx || x + i >= m_width) )
                     {
                         if(_method == mtBlackEdge)
                             continue;
@@ -166,19 +166,19 @@ QImage CImage::getOriginalImage()
 }
 
 //-----------------------------------------------------------------------------------
-void CImage::GaussianBlur(float _sigma)
+void CImage::gaussianBlur( float _sigma, mtProcessingEdgeEffects _method )
 {
-    ConvolutionForGauss(_sigma);
+    convolutionForGauss( _sigma, _method );
 }
 
 //-----------------------------------------------------------------------------------
-float CImage::gaussian(int _x,float _s)
+float CImage::gaussian( int _x,float _s )
 {
-    return  exp(-(_x * _x) / _s) / _s / M_PI;
+    return  exp( -( _x * _x ) / _s) / _s / M_PI;
 }
 
 //-----------------------------------------------------------------------------------
-vector<float> CImage::GaussianKernel(float _sigma)
+vector<float> CImage::gaussianKernel( float _sigma )
 {
     unsigned sizeKernel = 3 * _sigma;
 
@@ -193,20 +193,21 @@ vector<float> CImage::GaussianKernel(float _sigma)
     // Резервируем память
     vector<float> gaussKernel1D;
 
-    gaussKernel1D.reserve(sizeKernel);
+    gaussKernel1D.reserve( sizeKernel );
     int edgeKernel = sizeKernel/2;
 
-    float sum = 0, s = 2 * _sigma * _sigma;
+    float sum = 0;
+    float s = 2 * _sigma * _sigma;
 
-    for (int x = -edgeKernel ; x <= edgeKernel; x++)
+    for ( int x = -edgeKernel ; x <= edgeKernel; x++ )
     {
-        auto temp = gaussian(x,s);
-        gaussKernel1D.push_back(temp);
-        sum+=temp;
+        auto temp = gaussian( x,s );
+        gaussKernel1D.push_back( temp );
+        sum += temp;
     }
 
     // Нормализуем
-    for(size_t i = 0; i < gaussKernel1D.size(); i++)
+    for ( size_t i = 0; i < gaussKernel1D.size(); i++ )
     {
         gaussKernel1D[i] /= sum;
     }
@@ -215,39 +216,45 @@ vector<float> CImage::GaussianKernel(float _sigma)
 }
 
 //-----------------------------------------------------------------------------------
-void CImage::ConvolutionForGauss(float _sigma)
+void CImage::convolutionForGauss( float _sigma, mtProcessingEdgeEffects _method )
 {
-    vector<float> temp = GaussianKernel( _sigma );
-    CMatrixV<float> Gaus1H(3,1,temp);
-    CMatrixV<float> Gaus1W(1,3,temp);
-    magnitude( m_myImage, convolution(Gaus1W,mtBlackEdge), convolution(Gaus1W,mtThor));
-    magnitude( m_myImage, convolution(Gaus1H,mtBlackEdge), convolution(Gaus1H,mtThor));
+    vector<float> temp = gaussianKernel( _sigma );
+    CMatrixV<float> Gaus1H( 3,1,temp );
+    CMatrixV<float> Gaus1W( 1,3,temp );
+    magnitude( m_myImage, convolution( Gaus1W, _method ), convolution( Gaus1W, _method ) );
+    magnitude( m_myImage, convolution( Gaus1H, _method ), convolution( Gaus1H, _method ) );
 }
 
 //-----------------------------------------------------------------------------------
-vector<int> CImage::resizeBilinear(vector<int> pixels, int w, int h, int w2, int h2)
+vector<int> CImage::resizeBilinear( vector<int> _image, int _widthOld, int _heightOld, int _widthNew, int _heightNew )
 {
-    vector<int> temp(w2*h2);
+    vector<int> temp( _widthNew * _heightNew );
     int a, b, c, d, x, y, index;
-    float x_ratio = ((float)(w-1))/w2;
-    float y_ratio = ((float)(h-1))/h2;
+    float x_ratio = ( (float)( _widthOld - 1 ) ) / _widthNew;
+    float y_ratio = ( (float)( _heightOld - 1 ) ) / _heightNew;
     float x_diff, y_diff;
-    int offset = 0 ;
-    for (int i=0;i<h2;i++)
+    int offset = 0;
+    for ( auto i = 0; i < _heightNew; i++ )
     {
-        for (int j=0;j<w2;j++)
+        for (auto j = 0; j < _widthNew; j++ )
         {
-            x = (int)(x_ratio * j);
-            y = (int)(y_ratio * i);
-            x_diff = (x_ratio * j) - x;
-            y_diff = (y_ratio * i) - y;
-            index = (y*w+x);
-            a = pixels[index];
-            b = pixels[index+1];
-            c = pixels[index+w];
-            d = pixels[index+w+1];
-            temp[offset++] =  a * (1-x_diff) * (1-y_diff) + b * (x_diff) * (1-y_diff) + c * ( y_diff )*( 1-x_diff )   +(d)*(x_diff*y_diff);
+            x = (int)( x_ratio * j );
+            y = (int)( y_ratio * i );
+            x_diff = ( x_ratio * j ) - x;
+            y_diff = ( y_ratio * i ) - y;
+            index = ( y  * _widthOld + x );
+            a = _image[ index ];
+            b = _image[ index + 1 ];
+            c = _image[ index + _widthOld ];
+            d = _image[ index + _widthOld + 1 ];
+            temp[offset++] =  a * ( 1 - x_diff ) * ( 1 - y_diff ) + b * ( x_diff ) * ( 1 - y_diff ) + c * ( y_diff )*( 1 - x_diff ) + d * ( x_diff * y_diff );
         }
     }
-    return temp ;
+    return temp;
+}
+
+//-----------------------------------------------------------------------------------
+void CImage::reloadImage()
+{
+    grayScale( m_originalImage );
 }

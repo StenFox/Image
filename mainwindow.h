@@ -23,6 +23,8 @@ private slots:
 
     void on_SobelButton_clicked();
 
+    void on_ReloadImageButton_clicked();
+
 private:
     CImage *myImage;
     Ui::MainWindow *ui;

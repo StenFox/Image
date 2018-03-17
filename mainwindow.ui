@@ -17,14 +17,14 @@
    <widget class="QPushButton" name="LoadImageButton">
     <property name="geometry">
      <rect>
-      <x>890</x>
+      <x>830</x>
       <y>10</y>
-      <width>80</width>
-      <height>21</height>
+      <width>161</width>
+      <height>31</height>
      </rect>
     </property>
     <property name="text">
-     <string>Load Image</string>
+     <string>Загрузка изображения</string>
     </property>
    </widget>
    <widget class="QLabel" name="label">
@@ -43,22 +43,22 @@
    <widget class="QPushButton" name="GaussBlurButton">
     <property name="geometry">
      <rect>
-      <x>890</x>
-      <y>90</y>
-      <width>75</width>
-      <height>23</height>
+      <x>830</x>
+      <y>110</y>
+      <width>161</width>
+      <height>41</height>
      </rect>
     </property>
     <property name="text">
-     <string>PushButton</string>
+     <string>Фильтр Гаусса</string>
     </property>
    </widget>
    <widget class="QDoubleSpinBox" name="doubleSpinBox">
     <property name="geometry">
      <rect>
-      <x>900</x>
-      <y>50</y>
-      <width>62</width>
+      <x>880</x>
+      <y>80</y>
+      <width>111</width>
       <height>22</height>
      </rect>
     </property>
@@ -69,14 +69,14 @@
    <widget class="QPushButton" name="SobelButton">
     <property name="geometry">
      <rect>
-      <x>890</x>
-      <y>130</y>
-      <width>75</width>
-      <height>23</height>
+      <x>830</x>
+      <y>160</y>
+      <width>161</width>
+      <height>51</height>
      </rect>
     </property>
     <property name="text">
-     <string>PushButton</string>
+     <string>Собель</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_2">
@@ -90,6 +90,42 @@
     </property>
     <property name="text">
      <string>TextLabel</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="M_EdgeComboBox">
+    <property name="geometry">
+     <rect>
+      <x>830</x>
+      <y>230</y>
+      <width>161</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="ReloadImageButton">
+    <property name="geometry">
+     <rect>
+      <x>830</x>
+      <y>42</y>
+      <width>161</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Перезагрузка изображения</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_Sigma">
+    <property name="geometry">
+     <rect>
+      <x>840</x>
+      <y>80</y>
+      <width>31</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Sigma</string>
     </property>
    </widget>
   </widget>
