@@ -3,9 +3,14 @@
 
 using namespace  std;
 
-CMatrixV<int> CImage::g_sobelX( 3,3,VsobelX );
-CMatrixV<int> CImage::g_sobelY( 3,3,VsobelY );
+CMatrixV<int> CImage::g_sobelX( 3, 3, VsobelX );
+CMatrixV<int> CImage::g_sobelY( 3, 3, VsobelY );
 
+CMatrixV<int> CImage::g_prewittX( 3, 3, VprewittX );
+CMatrixV<int> CImage::g_prewittY( 3, 3, VprewittY );
+
+CMatrixV<int> CImage::g_robertX( 3, 3, VrobertX );
+CMatrixV<int> CImage::g_robertY( 3, 3, VrobertY );
 
 //-----------------------------------------------------------------------------------
 CImage::CImage( QString _fileName )
@@ -41,6 +46,18 @@ void CImage::grayScale( QImage _image )
 void CImage::sobel( mtProcessingEdgeEffects _method )
 {
     magnitude( m_myImage, convolution( g_sobelX, _method ), convolution( g_sobelY, _method ) );
+}
+
+//-----------------------------------------------------------------------------------
+void CImage::priwitt( mtProcessingEdgeEffects _method )
+{
+    magnitude( m_myImage, convolution( g_prewittX, _method ), convolution( g_prewittY, _method ) );
+}
+
+//-----------------------------------------------------------------------------------
+void CImage::robert( mtProcessingEdgeEffects _method )
+{
+    magnitude( m_myImage, convolution( g_robertX, _method ), convolution( g_robertY, _method ) );
 }
 
 //-----------------------------------------------------------------------------------
@@ -84,21 +101,21 @@ vector<int> CImage::convolution(CMatrixV<auto> _kernel, mtProcessingEdgeEffects 
             {
                 if ((y + j < offsety || y + j >= m_height))
                 {
-                    if(_method == mtBlackEdge)
+                    if( _method == mtBlackEdge )
                         continue;
                 }
                 for (auto i = 0; i < kw; i++)
                 {
                     if ( (x + i < offsetx || x + i >= m_width) )
                     {
-                        if(_method == mtBlackEdge)
+                        if( _method == mtBlackEdge )
                             continue;
-                        if(_method == mtCopyEdge )
+                        if( _method == mtCopyEdge )
                         {
                             sum += _kernel.getMatrix()[ j * kw + i ] * m_myImage[ y * m_width + x + i ];
                             continue;
                         }
-                        if(_method == mtThor)
+                        if( _method == mtThor )
                         {
                             if(y + j < offsety )
                             {
@@ -108,10 +125,10 @@ vector<int> CImage::convolution(CMatrixV<auto> _kernel, mtProcessingEdgeEffects 
                                 }
                                 else if( x + i >= m_width )
                                 {
-                                    sum += _kernel.getMatrix()[ j * kw + i ] * m_myImage[(m_height - 1) * m_width];
+                                    sum += _kernel.getMatrix()[ j * kw + i ] * m_myImage[ ( m_height - 1 ) * m_width ];
                                 }
                                 else
-                                    sum += _kernel.getMatrix()[ j * kw + i ] * m_myImage[y * m_width + x + i - offsetx];
+                                    sum += _kernel.getMatrix()[ j * kw + i ] * m_myImage[ y * m_width + x + i - offsetx ];
                                 continue;
                             }
 
@@ -119,19 +136,19 @@ vector<int> CImage::convolution(CMatrixV<auto> _kernel, mtProcessingEdgeEffects 
                             {
                                 if(x + i < offsetx)
                                 {
-                                    sum += _kernel.getMatrix()[ j * kw + i ] * m_myImage[m_width];
+                                    sum += _kernel.getMatrix()[ j * kw + i ] * m_myImage[ m_width] ;
                                 }
                                 else if( x + i >= m_width )
                                 {
-                                    sum += _kernel.getMatrix()[ j * kw + i ] * m_myImage[0];
+                                    sum += _kernel.getMatrix()[ j * kw + i ] * m_myImage[ 0 ];
                                 }
                                 else
-                                    sum += _kernel.getMatrix()[ j * kw + i ] * m_myImage[y * m_width + x + i - offsetx];
+                                    sum += _kernel.getMatrix()[ j * kw + i ] * m_myImage[ y * m_width + x + i - offsetx ];
                                 continue;
                             }
                         }
                     }
-                    sum += _kernel.getMatrix()[ j * kw + i ] * m_myImage[y * m_width + x + i - offsetx];
+                    sum += _kernel.getMatrix()[ j * kw + i ] * m_myImage[ y * m_width + x + i - offsetx ];
                 }
             }
             // Нормирование
@@ -145,14 +162,14 @@ vector<int> CImage::convolution(CMatrixV<auto> _kernel, mtProcessingEdgeEffects 
 //-----------------------------------------------------------------------------------
 QImage CImage::getImage()
 {
-    QImage img (m_width ,m_height, m_originalImage.format());
-    for (int i = 0; i < m_height; i++)
+    QImage img ( m_width ,m_height, m_originalImage.format() );
+    for ( int i = 0; i < m_height; i++ )
     {
-        QRgb *pixel = reinterpret_cast<QRgb*>(img.scanLine(i));
+        QRgb *pixel = reinterpret_cast<QRgb*>( img.scanLine(i) );
         QRgb *end = pixel + m_width;
-        for (int j =0; pixel != end; pixel++,j++)
+        for ( int j =0; pixel != end; pixel++,j++ )
         {
-            int gray = m_myImage[i * m_width + j];
+            int gray = m_myImage[ i * m_width + j ];
             *pixel = QColor(gray,gray,gray).rgb();
         }
     }

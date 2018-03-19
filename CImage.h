@@ -30,6 +30,12 @@ public:
     // Оператор Собеля
     void sobel( mtProcessingEdgeEffects _method = mtBlackEdge  );
 
+    // Оператор Привитта
+    void priwitt( mtProcessingEdgeEffects _method = mtBlackEdge  );
+
+    // Оператор Робертса
+    void robert( mtProcessingEdgeEffects _method = mtBlackEdge  );
+
     // Билинейная интреполяция уменьшаем изображение в 2 раза
     void resizeTwo();
 
@@ -42,6 +48,18 @@ private:
 
     // Ядро Собель по Y
     static CMatrixV<int> g_sobelY;
+
+    // Ядро Привитт по X
+    static CMatrixV<int> g_prewittX;
+
+    // Ядро Привитт по Y
+    static CMatrixV<int> g_prewittY;
+
+    // Ядро Робертс по X
+    static CMatrixV<int> g_robertX;
+
+    // Ядро Робертс по Y
+    static CMatrixV<int> g_robertY;
 
     // Ширина "моего изображения"
     int m_width;
