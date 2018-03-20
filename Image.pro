@@ -28,13 +28,15 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    CImage.cpp
+    CImage.cpp \
+    CimageHandler.cpp
 
 HEADERS += \
         mainwindow.h \
     CImage.h \
     CImageKernels.h \
-    CMatrixV.h
+    CMatrixV.h \
+    CImageHandler.h
 
 FORMS += \
         mainwindow.ui

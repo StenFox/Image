@@ -14,7 +14,7 @@ public:
     {
         m_columns = _columns;
         m_rows = _rows;
-        m_matrix.reserve( _columns * _rows );
+        m_matrix.resize( _columns * _rows, 0 );
     }
 
     CMatrixV(int _columns,int _rows,std::vector<T> _vectorForCopy)
@@ -37,6 +37,11 @@ public:
     std::vector<T> getMatrix()
     {
         return m_matrix;
+    }
+
+    T getItem(int _currentColumns,int _currentRows)
+    {
+        return m_matrix[ _currentColumns * m_rows + _currentRows ];
     }
 };
 
