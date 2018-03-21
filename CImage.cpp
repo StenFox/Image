@@ -1,14 +1,47 @@
 #include "CImage.h"
-#include "CImageKernels.h"
 
 using namespace  std;
 
-//-----------------------------------------------------------------------------------
+// Конструктор
 CImage::CImage( QString _fileName )
 {
     QImage img;
     img.load( _fileName );
-    m_myImage( img.height(),img.width() )
+    CMatrixV<float> myImage( img.height() ,img.width() );
+    m_myImage = myImage;
+}
+
+//-----------------------------------------------------------------------------------
+CImage::CImage (const CImage & _image)
+{
+    m_myImage = _image.m_myImage;
+}
+
+//-----------------------------------------------------------------------------------
+CImage::CImage ( CImage&& _image )
+{
+   m_myImage = _image.m_myImage;
+}
+
+//-----------------------------------------------------------------------------------
+CImage& CImage::operator= ( const CImage& _image )
+{
+
+}
+
+//-----------------------------------------------------------------------------------
+CImage&  CImage::operator= ( CImage&& _image )
+{
+    if( this != &other )
+    {
+
+    }
+}
+
+//-----------------------------------------------------------------------------------
+CImage::~CImage()
+{
+
 }
 
 //-----------------------------------------------------------------------------------
@@ -26,4 +59,26 @@ QImage CImage::getImage()
         }
     }
     return img;
+}
+
+//-----------------------------------------------------------------------------------
+int CImage::getHeight() const
+{
+    return m_myImage.getColumns();
+}
+
+//-----------------------------------------------------------------------------------
+int CImage::getWidth() const
+{
+    return m_myImage.getRows();
+}
+
+void CImage::setPixel( int _columns,int _rows, int _value )
+{
+    m_myImage.setItem( _columns,_rows, _value );
+}
+
+float CImage::getPixel( int _columns,int _rows ) const
+{
+    return m_myImage.getItem(_columns,_rows);
 }

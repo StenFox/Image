@@ -24,7 +24,7 @@ private:
     void gaussianBlur( float _sigma, mtProcessingEdgeEffects _method = mtBlackEdge );
 
     // Оператор Собеля
-    void sobel( mtProcessingEdgeEffects _method = mtBlackEdge );
+    void sobel( mtProcessingEdgeEffects _method, CImage& _image );
 
     // Оператор Привитта
     void priwitt( mtProcessingEdgeEffects _method = mtBlackEdge );
@@ -36,10 +36,10 @@ private:
     void resizeTwo();
 private:
     // Ядро Собель по X
-    static CMatrixV<int> g_sobelX;
+    static const CMatrixV<int> g_sobelX;
 
     // Ядро Собель по Y
-    static CMatrixV<int> g_sobelY;
+    static const CMatrixV<int> g_sobelY;
 
     // Ядро Привитт по X
     static CMatrixV<int> g_prewittX;
@@ -54,14 +54,14 @@ private:
     static CMatrixV<int> g_robertY;
 
     // Функция перевода изображения в оттенки серого
-    void grayScale( QImage _image );
+    void grayScale( QImage& _image );
 
     // Магнитуда или вычисление Величины градиента
-    void magnitude( std::vector<int>& _input, const std::vector<int>& _gx, const std::vector<int>& _gy );
+    void magnitude( CImage& _input, const std::vector<int>& _gx, const std::vector<int>& _gy );
 
     // Свёртка, на вход подаём ядро cвёртки и метод для обработки краевых эффектов
     template<typename T>
-    std::vector<int> convolution(const CMatrixV<T>& _kernel, mtProcessingEdgeEffects _method )
+    std::vector<int> convolution(const CMatrixV<T>& _kernel, CImage& _myImage, mtProcessingEdgeEffects _method )
     {
         int kw = _kernel.getRows();
         int kh = _kernel.getColumns();
@@ -69,30 +69,33 @@ private:
         auto offsety = kw / 2;
         float sum;
 
-        std::vector<int> outConvolution;
-        outConvolution.reserve( m_height * m_width );
+        auto heightImg = _myImage.getHeight();
+        auto widthImg = _myImage.getWidth();
 
-        for (auto y = 0; y < m_height; y++)
+        std::vector<int> outConvolution;
+        outConvolution.resize( heightImg * widthImg, 0 );
+
+        for (auto y = 0; y < heightImg; y++)
         {
-            for (auto x = 0; x < m_width; x++)
+            for (auto x = 0; x < widthImg; x++)
             {
                 sum = 0;
                 for (auto j = 0; j < kh; j++)
                 {
-                    if ((y + j < offsety || y + j >= m_height))
+                    if ((y + j < offsety || y + j >= heightImg))
                     {
                         if( _method == mtBlackEdge )
                             continue;
                     }
                     for (auto i = 0; i < kw; i++)
                     {
-                        if ( (x + i < offsetx || x + i >= m_width) )
+                        if ( ( x + i < offsetx || x + i >= widthImg ) )
                         {
                             if( _method == mtBlackEdge )
                                 continue;
                             if( _method == mtCopyEdge )
                             {
-                                sum += _kernel.getMatrix()[ j * kw + i ] * m_myImage[ y * m_width + x + i ];
+                                sum += _kernel.getItem( j, i ) * _myImage.getPixel(y, x + i );
                                 continue;
                             }
                             if( _method == mtThor )
@@ -101,34 +104,34 @@ private:
                                 {
                                     if(x + i < offsetx)
                                     {
-                                        sum += _kernel.getMatrix()[ j * kw + i ] * m_myImage[m_height * m_width];
+                                        sum += _kernel.getItem( j, i ) * _myImage.getPixel( heightImg, widthImg );
                                     }
-                                    else if( x + i >= m_width )
+                                    else if( x + i >= widthImg )
                                     {
-                                        sum += _kernel.getMatrix()[ j * kw + i ] * m_myImage[ ( m_height - 1 ) * m_width ];
+                                        sum += _kernel.getItem( j, i ) * _myImage.getPixel( heightImg - 1 , widthImg );
                                     }
                                     else
-                                        sum += _kernel.getMatrix()[ j * kw + i ] * m_myImage[ y * m_width + x + i - offsetx ];
+                                        sum += _kernel.getItem( j, i ) * _myImage.getPixel( y, x + i - offsetx );
                                     continue;
                                 }
 
-                                if( y + j >= m_height )
+                                if( y + j >= heightImg )
                                 {
                                     if(x + i < offsetx)
                                     {
-                                        sum += _kernel.getMatrix()[ j * kw + i ] * m_myImage[ m_width] ;
+                                        sum += _kernel.getItem( j, i ) * _myImage.getPixel( 0, widthImg ) ;
                                     }
-                                    else if( x + i >= m_width )
+                                    else if( x + i >= widthImg )
                                     {
-                                        sum += _kernel.getMatrix()[ j * kw + i ] * m_myImage[ 0 ];
+                                        sum += _kernel.getItem( j, i ) * _myImage.getPixel( 0, 0 );
                                     }
                                     else
-                                        sum += _kernel.getMatrix()[ j * kw + i ] * m_myImage[ y * m_width + x + i - offsetx ];
+                                        sum += _kernel.getItem( j, i ) * _myImage.getPixel( y, x + i - offsetx );
                                     continue;
                                 }
                             }
                         }
-                        sum += _kernel.getMatrix()[ j * kw + i ] * m_myImage[ y * m_width + x + i - offsetx ];
+                        sum += _kernel.getItem( j, i ) * _myImage.getPixel( y, x + i - offsetx );
                     }
                 }
                 // Нормирование
@@ -149,7 +152,7 @@ private:
     void convolutionForGauss( float _sigma, mtProcessingEdgeEffects _method );
 
     // Билинейная интерполяция
-    std::vector<int> resizeBilinear( std::vector<int>& _image, int _widthOld, int heightOld, int _widthNew, int heightNew );
+    std::vector<int> resizeBilinear( const std::vector<int>& _image, int _widthOld, int _heightOld, int _widthNew, int _heightNew );
 };
 
 #endif // CIMAGEHANDLER_H
