@@ -1,6 +1,7 @@
 #ifndef CIMAGEHANDLER_H
 #define CIMAGEHANDLER_H
 #include "CImage.h"
+#include <QDebug>
 
 enum mtProcessingEdgeEffects
 {
@@ -18,22 +19,25 @@ class CImageHandler
 {
 public:
     CImageHandler();
-private:
-
-    // Размытие по Гауссу
-    void gaussianBlur( float _sigma, mtProcessingEdgeEffects _method = mtBlackEdge );
 
     // Оператор Собеля
     void sobel( mtProcessingEdgeEffects _method, CImage& _image );
 
+    // Функция перевода изображения в оттенки серого
+    void grayScale( QImage& _image, CImage& _myImage );
+
+    // Размытие по Гауссу
+    void gaussianBlur( float _sigma, CImage& _myImage, mtProcessingEdgeEffects _method = mtBlackEdge );
+
+private:
+
     // Оператор Привитта
-    void priwitt( mtProcessingEdgeEffects _method = mtBlackEdge );
+    void priwitt( mtProcessingEdgeEffects _method, CImage& _image );
 
     // Оператор Робертса
-    void robert( mtProcessingEdgeEffects _method = mtBlackEdge );
-
+    void robert( mtProcessingEdgeEffects _method, CImage& _image );
     // Билинейная интреполяция уменьшаем изображение в 2 раза
-    void resizeTwo();
+    //void resizeTwo();
 private:
     // Ядро Собель по X
     static const CMatrixV<int> g_sobelX;
@@ -53,9 +57,6 @@ private:
     // Ядро Робертс по Y
     static CMatrixV<int> g_robertY;
 
-    // Функция перевода изображения в оттенки серого
-    void grayScale( QImage& _image );
-
     // Магнитуда или вычисление Величины градиента
     void magnitude( CImage& _input, const std::vector<int>& _gx, const std::vector<int>& _gy );
 
@@ -66,7 +67,7 @@ private:
         int kw = _kernel.getRows();
         int kh = _kernel.getColumns();
         auto offsetx = kw / 2;
-        auto offsety = kw / 2;
+        auto offsety = kh / 2;
         float sum;
 
         auto heightImg = _myImage.getHeight();
@@ -74,7 +75,6 @@ private:
 
         std::vector<int> outConvolution;
         outConvolution.resize( heightImg * widthImg, 0 );
-
         for (auto y = 0; y < heightImg; y++)
         {
             for (auto x = 0; x < widthImg; x++)
@@ -95,7 +95,7 @@ private:
                                 continue;
                             if( _method == mtCopyEdge )
                             {
-                                sum += _kernel.getItem( j, i ) * _myImage.getPixel(y, x + i );
+                                sum += _kernel.getItem( j, i ) * _myImage.getPixel( y + j, x + i );
                                 continue;
                             }
                             if( _method == mtThor )
@@ -111,7 +111,7 @@ private:
                                         sum += _kernel.getItem( j, i ) * _myImage.getPixel( heightImg - 1 , widthImg );
                                     }
                                     else
-                                        sum += _kernel.getItem( j, i ) * _myImage.getPixel( y, x + i - offsetx );
+                                        sum += _kernel.getItem( j, i ) * _myImage.getPixel( y + j - offsety, x + i - offsetx );
                                     continue;
                                 }
 
@@ -126,16 +126,18 @@ private:
                                         sum += _kernel.getItem( j, i ) * _myImage.getPixel( 0, 0 );
                                     }
                                     else
-                                        sum += _kernel.getItem( j, i ) * _myImage.getPixel( y, x + i - offsetx );
+                                        sum += _kernel.getItem( j, i ) * _myImage.getPixel( y + j - offsety, x + i - offsetx );
                                     continue;
                                 }
                             }
                         }
-                        sum += _kernel.getItem( j, i ) * _myImage.getPixel( y, x + i - offsetx );
+
+                        sum += _kernel.getItem( j, i ) * _myImage.getPixel( y + j - offsety , x + i - offsetx );
                     }
                 }
+
                 // Нормирование
-                outConvolution.push_back( qBound(0x00, static_cast<int>(sum), 0xFF) );
+                outConvolution[ y * widthImg + x ] = qBound(0x00, static_cast<int>(sum), 0xFF);
             }
         }
 
@@ -149,10 +151,21 @@ private:
     std::vector<float> gaussianKernel( float _sigma );
 
     // Две последовательных свёртки для ускорния
-    void convolutionForGauss( float _sigma, mtProcessingEdgeEffects _method );
+    void convolutionForGauss( float _sigma, CImage& _myImage, mtProcessingEdgeEffects _method );
+
+    void applyConvolution( std::vector<int>& _vector, CImage& _myImage )
+    {
+        for (int i = 0; i < _myImage.getHeight(); ++i)
+        {
+            for (int j = 0; j < _myImage.getWidth(); ++j)
+            {
+                _myImage.setPixel(i,j,_vector[i*_myImage.getWidth() + j]);
+            }
+        }
+    }
 
     // Билинейная интерполяция
-    std::vector<int> resizeBilinear( const std::vector<int>& _image, int _widthOld, int _heightOld, int _widthNew, int _heightNew );
+    //std::vector<int> resizeBilinear( const std::vector<int>& _image, int _widthOld, int _heightOld, int _widthNew, int _heightNew );
 };
 
 #endif // CIMAGEHANDLER_H

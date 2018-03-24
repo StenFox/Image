@@ -19,7 +19,7 @@ CImageHandler::CImageHandler()
 }
 
 //-----------------------------------------------------------------------------------
-void CImageHandler::grayScale( QImage& _image )
+void CImageHandler::grayScale( QImage& _image, CImage& _myImage )
 {
     Q_ASSERT( _image.format() == QImage::Format_RGB32 );
     for( int i = 0; i < _image.height(); i++ )
@@ -29,7 +29,7 @@ void CImageHandler::grayScale( QImage& _image )
         for(auto j = 0 ; pixel != end; pixel++,j++ )
         {
             int gray = qGray( *pixel );
-            _image.setPixel( i,j,gray );
+            _myImage.setPixel(i,j,gray );
         }
     }
 }
@@ -37,29 +37,28 @@ void CImageHandler::grayScale( QImage& _image )
 //-----------------------------------------------------------------------------------
 void CImageHandler::sobel( mtProcessingEdgeEffects _method, CImage& _image )
 {
-    convolution( g_sobelX, _image, _method );
     magnitude( _image, convolution( g_sobelX, _image, _method ), convolution( g_sobelY, _image, _method ) );
 }
 
 //-----------------------------------------------------------------------------------
-void CImageHandler::priwitt( mtProcessingEdgeEffects _method )
+void CImageHandler::priwitt( mtProcessingEdgeEffects _method, CImage& _image )
 {
-   // magnitude( m_myImage, convolution( g_prewittX, _method ), convolution( g_prewittY, _method ) );
+    magnitude( _image, convolution( g_prewittX, _image, _method ), convolution( g_prewittY, _image , _method ) );
 }
 
 //-----------------------------------------------------------------------------------
-void CImageHandler::robert( mtProcessingEdgeEffects _method )
+void CImageHandler::robert( mtProcessingEdgeEffects _method, CImage& _image  )
 {
-    //magnitude( m_myImage, convolution( g_robertX, _method ), convolution( g_robertY, _method ) );
+    magnitude( _image, convolution( g_robertX, _image, _method ), convolution( g_robertY, _image, _method ) );
 }
 
 //-----------------------------------------------------------------------------------
-void CImageHandler::resizeTwo()
-{
+//void CImageHandler::resizeTwo()
+//{
 //    m_myImage = resizeBilinear( m_myImage, m_width, m_height, m_width/2, m_height/2 );
 //    m_height /= 2;
 //    m_width /= 2;
-}
+//}
 
 //-----------------------------------------------------------------------------------
 void CImageHandler::magnitude( CImage& _input, const vector<int>& _gx, const vector<int>& _gy )
@@ -68,15 +67,15 @@ void CImageHandler::magnitude( CImage& _input, const vector<int>& _gx, const vec
     {
         for ( auto x = 0; x < _input.getWidth(); x++ )
         {
-            _input.setPixel(y,x,qBound( 0x00, static_cast<int>( hypot ( _gx[ y * _input.getWidth() + x ], _gy[ y * _input.getWidth() + x ] ) ), 0xFF ) );
+            _input.setPixel( y, x,qBound( 0x00, static_cast<int>( hypot ( _gx[ y * _input.getWidth() + x ], _gy[ y * _input.getWidth() + x ] ) ), 0xFF ) );
         }
     }
 }
 
 //-----------------------------------------------------------------------------------
-void CImageHandler::gaussianBlur( float _sigma, mtProcessingEdgeEffects _method )
+void CImageHandler::gaussianBlur( float _sigma,CImage& _myImage , mtProcessingEdgeEffects _method )
 {
-    convolutionForGauss( _sigma, _method );
+    convolutionForGauss( _sigma, _myImage, _method );
 }
 
 //-----------------------------------------------------------------------------------
@@ -124,17 +123,20 @@ vector<float> CImageHandler::gaussianKernel( float _sigma )
 }
 
 //-----------------------------------------------------------------------------------
-void CImageHandler::convolutionForGauss( float _sigma, mtProcessingEdgeEffects _method )
+void CImageHandler::convolutionForGauss( float _sigma, CImage& myImage ,mtProcessingEdgeEffects _method )
 {
     vector<float> temp = gaussianKernel( _sigma );
-    CMatrixV<float> Gaus1H( 3,1,temp );
-    CMatrixV<float> Gaus1W( 1,3,temp );
-    //magnitude( m_myImage, convolution( Gaus1W, _method ), convolution( Gaus1H, _method ) );
+    const CMatrixV<float> Gaus1H( 3,1,temp );
+    const CMatrixV<float> Gaus1W( 1,3,temp );
+    auto g1 = convolution( Gaus1W, myImage, _method );
+    applyConvolution( g1, myImage );
+    auto g2 = convolution( Gaus1H, myImage, _method );
+    applyConvolution( g2, myImage );
 }
 
 //-----------------------------------------------------------------------------------
-vector<int> CImageHandler::resizeBilinear( const vector<int>& _image, int _widthOld, int _heightOld, int _widthNew, int _heightNew )
-{
+//vector<int> CImageHandler::resizeBilinear( const vector<int>& _image, int _widthOld, int _heightOld, int _widthNew, int _heightNew )
+//{
 //    vector<int> temp( _widthNew * _heightNew );
 //    int a, b, c, d, x, y, index;
 //    float x_ratio = ( (float)( _widthOld - 1 ) ) / _widthNew;
@@ -158,4 +160,4 @@ vector<int> CImageHandler::resizeBilinear( const vector<int>& _image, int _width
 //        }
 //    }
 //    return temp;
-}
+//}

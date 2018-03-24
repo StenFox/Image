@@ -3,12 +3,10 @@
 using namespace  std;
 
 // Конструктор
-CImage::CImage( QString _fileName )
+CImage::CImage( int _height, int _width )
 {
-    QImage img;
-    img.load( _fileName );
-    CMatrixV<float> myImage( img.height() ,img.width() );
-    m_myImage = myImage;
+    CMatrixV<float> myImage( _height, _width );
+    m_myImage = std::move( myImage );
 }
 
 //-----------------------------------------------------------------------------------
@@ -20,22 +18,25 @@ CImage::CImage (const CImage & _image)
 //-----------------------------------------------------------------------------------
 CImage::CImage ( CImage&& _image )
 {
-   m_myImage = _image.m_myImage;
+   m_myImage = std::move( _image.m_myImage );
 }
 
 //-----------------------------------------------------------------------------------
 CImage& CImage::operator= ( const CImage& _image )
 {
-
+    m_myImage = _image.m_myImage;
+    return *this;
 }
 
 //-----------------------------------------------------------------------------------
 CImage&  CImage::operator= ( CImage&& _image )
 {
-    if( this != &other )
+    if (this != &_image)
     {
-
+        m_myImage.getMatrix().clear();
+        m_myImage = std::move( _image.m_myImage );
     }
+    return *this;
 }
 
 //-----------------------------------------------------------------------------------
@@ -59,26 +60,4 @@ QImage CImage::getImage()
         }
     }
     return img;
-}
-
-//-----------------------------------------------------------------------------------
-int CImage::getHeight() const
-{
-    return m_myImage.getColumns();
-}
-
-//-----------------------------------------------------------------------------------
-int CImage::getWidth() const
-{
-    return m_myImage.getRows();
-}
-
-void CImage::setPixel( int _columns,int _rows, int _value )
-{
-    m_myImage.setItem( _columns,_rows, _value );
-}
-
-float CImage::getPixel( int _columns,int _rows ) const
-{
-    return m_myImage.getItem(_columns,_rows);
 }

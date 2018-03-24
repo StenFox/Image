@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "CImage.h"
+#include "CImageHandler.h"
 
 namespace Ui {
 class MainWindow;
@@ -26,7 +27,8 @@ private slots:
     void on_ReloadImageButton_clicked();
 
 private:
-    CImage *myImage;
+    CImage* myImage;
+    CImageHandler* myImageHandler;
     Ui::MainWindow *ui;
 };
 

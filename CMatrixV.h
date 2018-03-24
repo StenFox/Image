@@ -12,10 +12,10 @@ private:
 public:
     CMatrixV()
     {
-
+        m_columns = 0;
+        m_rows = 0;
+        m_matrix.resize( 0, 0 );
     }
-
-
 
     CMatrixV( int _columns,int _rows )
     {
@@ -26,7 +26,10 @@ public:
 
     CMatrixV& operator= ( const CMatrixV& _matrix )
     {
-
+        m_columns = _matrix.m_columns;
+        m_rows = _matrix.m_rows;
+        std::copy( _matrix.m_matrix.begin(), _matrix.m_matrix.end(), m_matrix.begin() );
+        return *this;
     }
 
     CMatrixV& operator= ( CMatrixV&& _matrix )
@@ -34,14 +37,13 @@ public:
         if (this != &_matrix)
         {
             m_matrix.clear();
+            m_columns = 0;
+            m_rows = 0;
 
-            m_columns = _matrix.m_columns;
-            m_rows = _matrix.m_rows;
-            m_matrix = std::move( _matrix );
+            m_columns = std::move( _matrix.m_columns );
+            m_rows = std::move( _matrix.m_rows );
+            m_matrix = std::move( _matrix.m_matrix );
 
-            _matrix.m_columns = 0;
-            _matrix.m_rows = 0;
-            _matrix.m_matrix.clear();
         }
         return *this;
     }

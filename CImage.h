@@ -9,7 +9,7 @@ class CImage
 {
 public:
     // Конструктор
-    CImage( QString _fileName );
+    CImage( int _height, int _width );
 
     // Контсрутор копирования
     CImage (const CImage & _image);
@@ -18,7 +18,7 @@ public:
     CImage ( CImage&& _image );
 
     // Оператор присваивания
-    CImage& operator= ( const CImage _image );
+    CImage& operator= ( const CImage& _image );
 
     // Оператор перемещения
     CImage& operator= ( CImage&& _image );
@@ -28,14 +28,25 @@ public:
 
     QImage getImage();
 
-    int getHeight() const;
+    int getHeight() const
+    {
+        return m_myImage.getColumns();
+    }
 
-    int getWidth() const;
+    int getWidth() const
+    {
+        return m_myImage.getRows();
+    }
 
-    void setPixel( int _columns,int _rows, int _value );
+    void setPixel( int _columns,int _rows, int _value )
+    {
+        m_myImage.setItem( _columns,_rows, _value );
+    }
 
-    float getPixel( int _columns,int _rows ) const;
-
+    float getPixel( int _columns,int _rows ) const
+    {
+        return m_myImage.getItem( _columns,_rows );
+    }
 private:
     CMatrixV<float> m_myImage;
 };
