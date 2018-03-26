@@ -38,9 +38,9 @@ public:
         return m_myImage.getRows();
     }
 
-    void setPixel( int _columns,int _rows, int _value )
+    void setPixel( int _columns, int _rows, float _value )
     {
-        m_myImage.setItem( _columns,_rows, _value );
+        m_myImage.setItem( _columns, _rows, _value );
     }
 
     float getPixel( int _columns,int _rows ) const

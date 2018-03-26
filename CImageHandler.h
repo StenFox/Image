@@ -58,11 +58,11 @@ private:
     static CMatrixV<int> g_robertY;
 
     // Магнитуда или вычисление Величины градиента
-    void magnitude( CImage& _input, const std::vector<int>& _gx, const std::vector<int>& _gy );
+    void magnitude( CImage& _input, const std::vector<float>& _gx, const std::vector<float>& _gy );
 
     // Свёртка, на вход подаём ядро cвёртки и метод для обработки краевых эффектов
     template<typename T>
-    std::vector<int> convolution(const CMatrixV<T>& _kernel, CImage& _myImage, mtProcessingEdgeEffects _method )
+    std::vector<float> convolution(const CMatrixV<T>& _kernel, CImage& _myImage, mtProcessingEdgeEffects _method )
     {
         int kw = _kernel.getRows();
         int kh = _kernel.getColumns();
@@ -73,7 +73,7 @@ private:
         auto heightImg = _myImage.getHeight();
         auto widthImg = _myImage.getWidth();
 
-        std::vector<int> outConvolution;
+        std::vector<float> outConvolution;
         outConvolution.resize( heightImg * widthImg, 0 );
         for (auto y = 0; y < heightImg; y++)
         {
@@ -135,9 +135,7 @@ private:
                         sum += _kernel.getItem( j, i ) * _myImage.getPixel( y + j - offsety , x + i - offsetx );
                     }
                 }
-
-                // Нормирование
-                outConvolution[ y * widthImg + x ] = qBound(0x00, static_cast<int>(sum), 0xFF);
+                outConvolution[ y * widthImg + x ] = sum;
             }
         }
 
@@ -153,7 +151,7 @@ private:
     // Две последовательных свёртки для ускорния
     void convolutionForGauss( float _sigma, CImage& _myImage, mtProcessingEdgeEffects _method );
 
-    void applyConvolution( std::vector<int>& _vector, CImage& _myImage )
+    void applyConvolution( std::vector<float>& _vector, CImage& _myImage )
     {
         for (int i = 0; i < _myImage.getHeight(); ++i)
         {

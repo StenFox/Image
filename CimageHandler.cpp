@@ -61,13 +61,13 @@ void CImageHandler::robert( mtProcessingEdgeEffects _method, CImage& _image  )
 //}
 
 //-----------------------------------------------------------------------------------
-void CImageHandler::magnitude( CImage& _input, const vector<int>& _gx, const vector<int>& _gy )
+void CImageHandler::magnitude( CImage& _input, const vector<float>& _gx, const vector<float>& _gy )
 {
     for ( auto y = 0; y < _input.getHeight(); y++ )
     {
         for ( auto x = 0; x < _input.getWidth(); x++ )
         {
-            _input.setPixel( y, x,qBound( 0x00, static_cast<int>( hypot ( _gx[ y * _input.getWidth() + x ], _gy[ y * _input.getWidth() + x ] ) ), 0xFF ) );
+            _input.setPixel( y, x, hypot ( _gx[ y * _input.getWidth() + x ], _gy[ y * _input.getWidth() + x ] ) );
         }
     }
 }
