@@ -53,12 +53,21 @@ void CImageHandler::robert( mtProcessingEdgeEffects _method, CImage& _image  )
 }
 
 //-----------------------------------------------------------------------------------
-//void CImageHandler::resizeTwo()
-//{
-//    m_myImage = resizeBilinear( m_myImage, m_width, m_height, m_width/2, m_height/2 );
-//    m_height /= 2;
-//    m_width /= 2;
-//}
+CImage* CImageHandler::resizeTwo( CImage& _myImg )
+{
+    vector<float> temp = resizeBilinear( _myImg,_myImg.getWidth(),_myImg.getHeight(),_myImg.getWidth()/2,_myImg.getHeight()/2 );
+    return new CImage( _myImg.getHeight()/2,_myImg.getWidth()/2,temp );
+}
+
+//-----------------------------------------------------------------------------------
+void CImageHandler::downSpace( CImage& _myImg )
+{
+    int newW =_myImg.getWidth()/2;
+    int newH =_myImg.getHeight()/2;
+    vector<float> temp = resizeBilinear( _myImg,_myImg.getWidth(),_myImg.getHeight(),newW, newH );
+    _myImg.resize(newH,newW,temp);
+    temp.clear();
+}
 
 //-----------------------------------------------------------------------------------
 void CImageHandler::magnitude( CImage& _input, const vector<float>& _gx, const vector<float>& _gy )
@@ -79,15 +88,15 @@ void CImageHandler::gaussianBlur( float _sigma,CImage& _myImage , mtProcessingEd
 }
 
 //-----------------------------------------------------------------------------------
-float CImageHandler::gaussian( int _x,float _s )
+float CImageHandler::gaussian( int _x,float _sigma )
 {
-    return  exp( -( _x * _x ) / _s ) / _s / M_PI;
+    return  exp( -( _x * _x ) / 2 * _sigma *_sigma ) /(sqrt( 2 * M_PI ) * _sigma );
 }
 
 //-----------------------------------------------------------------------------------
 vector<float> CImageHandler::gaussianKernel( float _sigma )
 {
-    unsigned sizeKernel = 3 * _sigma;
+    unsigned sizeKernel = 3 * _sigma * 2;
 
     // ядро меньше 2 не имеет смысла
     if( sizeKernel < 1 )
@@ -100,20 +109,19 @@ vector<float> CImageHandler::gaussianKernel( float _sigma )
     // Резервируем память
     vector<float> gaussKernel1D;
 
-    gaussKernel1D.reserve( sizeKernel );
+    gaussKernel1D.resize( sizeKernel,0 );
     int edgeKernel = sizeKernel/2;
 
     float sum = 0;
-    float s = 2 * _sigma * _sigma;
+    //float s = 2 * _sigma * _sigma;
 
-    for ( int x = -edgeKernel ; x <= edgeKernel; x++ )
+    for (int i = 0, x = -edgeKernel ; x <= edgeKernel; x++,i++ )
     {
-        auto temp = gaussian( x,s );
-        gaussKernel1D.push_back( temp );
+        auto temp = gaussian( x,_sigma );
+        gaussKernel1D[i]= temp;
         sum += temp;
     }
 
-    // Нормализуем
     for ( size_t i = 0; i < gaussKernel1D.size(); i++ )
     {
         gaussKernel1D[i] /= sum;
@@ -126,8 +134,8 @@ vector<float> CImageHandler::gaussianKernel( float _sigma )
 void CImageHandler::convolutionForGauss( float _sigma, CImage& myImage ,mtProcessingEdgeEffects _method )
 {
     vector<float> temp = gaussianKernel( _sigma );
-    const CMatrixV<float> Gaus1H( 3,1,temp );
-    const CMatrixV<float> Gaus1W( 1,3,temp );
+    const CMatrixV<float> Gaus1H( temp.size(),1,temp );
+    const CMatrixV<float> Gaus1W( 1,temp.size(),temp );
     auto g1 = convolution( Gaus1W, myImage, _method );
     applyConvolution( g1, myImage );
     auto g2 = convolution( Gaus1H, myImage, _method );
@@ -135,29 +143,66 @@ void CImageHandler::convolutionForGauss( float _sigma, CImage& myImage ,mtProces
 }
 
 //-----------------------------------------------------------------------------------
-//vector<int> CImageHandler::resizeBilinear( const vector<int>& _image, int _widthOld, int _heightOld, int _widthNew, int _heightNew )
-//{
-//    vector<int> temp( _widthNew * _heightNew );
-//    int a, b, c, d, x, y, index;
-//    float x_ratio = ( (float)( _widthOld - 1 ) ) / _widthNew;
-//    float y_ratio = ( (float)( _heightOld - 1 ) ) / _heightNew;
-//    float x_diff, y_diff;
-//    int offset = 0;
-//    for ( auto i = 0; i < _heightNew; i++ )
-//    {
-//        for (auto j = 0; j < _widthNew; j++ )
-//        {
-//            x = (int)( x_ratio * j );
-//            y = (int)( y_ratio * i );
-//            x_diff = ( x_ratio * j ) - x;
-//            y_diff = ( y_ratio * i ) - y;
-//            index = ( y  * _widthOld + x );
-//            a = _image[ index ];
-//            b = _image[ index + 1 ];
-//            c = _image[ index + _widthOld ];
-//            d = _image[ index + _widthOld + 1 ];
-//            temp[offset++] =  a * ( 1 - x_diff ) * ( 1 - y_diff ) + b * ( x_diff ) * ( 1 - y_diff ) + c * ( y_diff )*( 1 - x_diff ) + d * ( x_diff * y_diff );
-//        }
-//    }
-//    return temp;
-//}
+vector<float> CImageHandler::resizeBilinear( const CImage& _img, int _widthOld, int _heightOld, int _widthNew, int _heightNew )
+{
+    vector<float> temp;
+    temp.resize( _widthNew * _heightNew );
+    int a, b, c, d, x, y, index;
+    float x_ratio = ( (float)( _widthOld - 1 ) ) / _widthNew;
+    float y_ratio = ( (float)( _heightOld - 1 ) ) / _heightNew;
+    float x_diff, y_diff;
+    int offset = 0;
+    for ( auto i = 0; i < _heightNew; i++ )
+    {
+        for (auto j = 0; j < _widthNew; j++ )
+        {
+            x = (int)( x_ratio * j );
+            y = (int)( y_ratio * i );
+            x_diff = ( x_ratio * j ) - x;
+            y_diff = ( y_ratio * i ) - y;
+            index = ( y  * _widthOld + x );
+            a = _img.getPixel( 0,index);
+            b = _img.getPixel( 0,index+1 );
+            c = _img.getPixel( 0, index + _widthOld );
+            d = _img.getPixel( 0, index + _widthOld + 1 );
+            temp[offset++] =  a * ( 1 - x_diff ) * ( 1 - y_diff ) + b * ( x_diff ) * ( 1 - y_diff ) + c * ( y_diff )*( 1 - x_diff ) + d * ( x_diff * y_diff );
+        }
+    }
+    return temp;
+}
+
+float pifagor(float sigmaNext,float sigmaPrev)
+{
+    return sqrt(sigmaNext * sigmaNext - sigmaPrev * sigmaPrev);
+}
+
+void CImageHandler::gaussPyramid( CImage& _img, int _octaves,int sclaes, float sigmaZero )
+{
+    float sigmaPrev;
+    float sigmaNext;
+    float deltaSigma;
+    float k = pow( sclaes, (float)1/sclaes);
+    sigmaPrev = 0.5;
+    sigmaNext = sigmaPrev * k;
+    deltaSigma = pifagor( sigmaNext,sigmaPrev );
+    while( sigmaNext < sigmaZero )
+    {
+        gaussianBlur( deltaSigma,_img, mtBlackEdge );
+        sigmaPrev = sigmaNext;
+        sigmaNext = sigmaPrev * k;
+    }
+
+    for (int i = 0; i < _octaves; i++)
+    {
+        sigmaPrev = sigmaZero;
+        sigmaNext = sigmaPrev * k;
+        deltaSigma = pifagor( sigmaNext,sigmaPrev );
+        while( sigmaNext < 2*sigmaZero )
+        {
+             gaussianBlur( deltaSigma, _img, mtBlackEdge );
+             sigmaPrev = sigmaNext;
+             sigmaNext = sigmaPrev * k;
+        }
+        downSpace( _img );
+    }
+}

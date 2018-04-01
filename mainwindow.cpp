@@ -27,23 +27,47 @@ void MainWindow::on_LoadImageButton_clicked()
     img.load(fileName);
     myImage = new CImage( img.height(), img.width() );
     myImageHandler->grayScale( img ,*myImage );
-    ui->label->setPixmap( QPixmap::fromImage( myImage->getImage() ) );
-    ui->label_2->setPixmap( QPixmap::fromImage( img ) );
+    //ui->graphicsView->scene()->clear();
+    QGraphicsScene *scene = new QGraphicsScene();
+    QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage(myImage->getImage()));
+    scene->addItem(item);
+    ui->graphicsView->setScene(scene);
+    //ui->label->setPixmap( QPixmap::fromImage( myImage->getImage() ) );
+    //ui->label_2->setPixmap( QPixmap::fromImage( img ) );
 }
 
 void MainWindow::on_GaussBlurButton_clicked()
 {
     myImageHandler->gaussianBlur( ui->doubleSpinBox->value(),  *myImage, ( mtProcessingEdgeEffects )ui->M_EdgeComboBox->currentIndex() );
-    ui->label->setPixmap( QPixmap::fromImage( myImage->getImage() ) );
+    ui->graphicsView->scene()->clear();
+    QGraphicsScene *scene = new QGraphicsScene();
+    QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage(myImage->getImage()));
+    scene->addItem(item);
+    ui->graphicsView->setScene(scene);
 }
 
 void MainWindow::on_SobelButton_clicked()
 {
     myImageHandler->sobel( ( mtProcessingEdgeEffects )ui->M_EdgeComboBox->currentIndex(), *myImage );
-    ui->label->setPixmap( QPixmap::fromImage( myImage->getImage() ) );
+    ////ui->label->setPixmap( QPixmap::fromImage( myImage->getImage() ) );
+    ui->graphicsView->scene()->clear();
+    QGraphicsScene *scene = new QGraphicsScene();
+    QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage(myImage->getImage()));
+    scene->addItem(item);
+    ui->graphicsView->setScene(scene);
 }
 
 void MainWindow::on_ReloadImageButton_clicked()
 {
 
+}
+
+void MainWindow::on_pushButton_clicked()
+{
+    myImageHandler->gaussPyramid(*myImage,2,2,1.1);
+    ui->graphicsView->scene()->clear();
+    QGraphicsScene *scene = new QGraphicsScene();
+    QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage(myImage->getImage()));
+    scene->addItem(item);
+    ui->graphicsView->setScene(scene);
 }

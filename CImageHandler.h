@@ -20,6 +20,9 @@ class CImageHandler
 public:
     CImageHandler();
 
+    //
+    void gaussPyramid( CImage& _img, int _octaves,int sclaes, float sigmaZero );
+
     // Оператор Собеля
     void sobel( mtProcessingEdgeEffects _method, CImage& _image );
 
@@ -29,16 +32,16 @@ public:
     // Размытие по Гауссу
     void gaussianBlur( float _sigma, CImage& _myImage, mtProcessingEdgeEffects _method = mtBlackEdge );
 
-private:
-
     // Оператор Привитта
     void priwitt( mtProcessingEdgeEffects _method, CImage& _image );
 
     // Оператор Робертса
     void robert( mtProcessingEdgeEffects _method, CImage& _image );
     // Билинейная интреполяция уменьшаем изображение в 2 раза
-    //void resizeTwo();
+    CImage* resizeTwo( CImage& _myImg );
 private:
+
+    void downSpace( CImage& _myImg );
     // Ядро Собель по X
     static const CMatrixV<int> g_sobelX;
 
@@ -163,7 +166,7 @@ private:
     }
 
     // Билинейная интерполяция
-    //std::vector<int> resizeBilinear( const std::vector<int>& _image, int _widthOld, int _heightOld, int _widthNew, int _heightNew );
+    std::vector<float> resizeBilinear( const CImage& _img, int _widthOld, int _heightOld, int _widthNew, int _heightNew );
 };
 
 #endif // CIMAGEHANDLER_H

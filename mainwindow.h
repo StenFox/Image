@@ -26,8 +26,11 @@ private slots:
 
     void on_ReloadImageButton_clicked();
 
+    void on_pushButton_clicked();
+
 private:
     CImage* myImage;
+    CImage* newImage;
     CImageHandler* myImageHandler;
     Ui::MainWindow *ui;
 };

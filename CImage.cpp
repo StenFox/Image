@@ -9,6 +9,12 @@ CImage::CImage( int _height, int _width )
     m_myImage = std::move( myImage );
 }
 
+CImage::CImage( int _height, int _width ,vector<float>& _img )
+{
+    CMatrixV<float> myImage( _height, _width, _img );
+    m_myImage = std::move( myImage );
+}
+
 //-----------------------------------------------------------------------------------
 CImage::CImage (const CImage & _image)
 {
@@ -42,21 +48,22 @@ CImage&  CImage::operator= ( CImage&& _image )
 //-----------------------------------------------------------------------------------
 CImage::~CImage()
 {
-
+    int b =0;
 }
 
 //-----------------------------------------------------------------------------------
 QImage CImage::getImage()
 {
     QImage img ( m_myImage.getRows() ,m_myImage.getColumns(), QImage::Format_RGB32 );
+    m_myImage.normalize();
     for ( int i = 0; i < m_myImage.getColumns(); i++ )
     {
         QRgb *pixel = reinterpret_cast<QRgb*>( img.scanLine(i) );
         QRgb *end = pixel + m_myImage.getColumns();
         for ( int j =0; pixel != end; pixel++,j++ )
         {
-            int gray = m_myImage.getItem(i,j);
-            *pixel = QColor( gray, gray, gray ).rgb();
+            int item = m_myImage.getItem(i,j);
+            *pixel = QColor( item, item, item ).rgb();
         }
     }
     return img;

@@ -1,6 +1,7 @@
 #ifndef CMATRIXV_H
 #define CMATRIXV_H
-#include "vector"
+#include <vector>
+#include <algorithm>
 
 template<typename T>
 class CMatrixV
@@ -52,7 +53,7 @@ public:
     {
         m_columns = _columns;
         m_rows = _rows;
-        m_matrix = _vectorForCopy;
+        m_matrix = std::move( _vectorForCopy );
     }
 
     int getColumns() const
@@ -60,9 +61,19 @@ public:
         return m_columns;
     }
 
+    void setColumns( int _columns )
+    {
+        m_columns = _columns;
+    }
+
     int getRows() const
     {
          return m_rows;
+    }
+
+    void setRows( int _rows )
+    {
+        m_rows = _rows;
     }
 
     std::vector<T> getMatrix()
@@ -78,6 +89,52 @@ public:
     void setItem( int _currentColumns,int _currentRows, T _value )
     {
         m_matrix[ _currentColumns * m_rows + _currentRows ] = _value;
+    }
+
+    void normalize()
+    {
+        auto it_min = std::min_element(m_matrix.begin(),m_matrix.end());
+        T min = *it_min;
+        if(min<0)
+            for (auto i = 0; i < m_matrix.size(); i++)
+            {
+                m_matrix[i]+=min;
+            }
+
+        auto it_max = std::max_element(m_matrix.begin(),m_matrix.end());
+        T max = *it_max;
+        if( max > 255 )
+        for (auto i = 0; i < m_matrix.size(); i++)
+        {
+            m_matrix[i]/=max;
+            m_matrix[i]*=255;
+        }
+    }
+
+    void oneNormalize()
+    {
+        auto it_min = std::min_element(m_matrix.begin(),m_matrix.end());
+        T min = *it_min;
+        if(min<0)
+            for (auto i = 0; i < m_matrix.size(); i++)
+            {
+                m_matrix[i]+=min;
+            }
+
+        auto it_max = std::max_element(m_matrix.begin(),m_matrix.end());
+        T max = *it_max;
+        for (auto i = 0; i < m_matrix.size(); i++)
+        {
+            m_matrix[i]/=max;
+            //m_matrix[i]*=255;
+        }
+    }
+
+    void resize( int _columns,int _rows,const std::vector<T>& _vectorForCopy )
+    {
+        m_columns = _columns;
+        m_rows = _rows;
+        m_matrix = std::move( _vectorForCopy );
     }
 };
 

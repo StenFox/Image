@@ -11,6 +11,8 @@ public:
     // Конструктор
     CImage( int _height, int _width );
 
+    CImage( int _height, int _width, std::vector<float>& _img );
+
     // Контсрутор копирования
     CImage (const CImage & _image);
 
@@ -33,9 +35,19 @@ public:
         return m_myImage.getColumns();
     }
 
+    void setHeight( int _value )
+    {
+        m_myImage.setColumns( _value );
+    }
+
     int getWidth() const
     {
         return m_myImage.getRows();
+    }
+
+    void setWidth( int _value )
+    {
+        m_myImage.setRows( _value );
     }
 
     void setPixel( int _columns, int _rows, float _value )
@@ -47,6 +59,17 @@ public:
     {
         return m_myImage.getItem( _columns,_rows );
     }
+
+    void resize( int _columns, int _rows,std::vector<float>& _newImg )
+    {
+        m_myImage.resize( _columns,_rows,_newImg );
+    }
+
+    void oneNormalize()
+    {
+        m_myImage.oneNormalize();
+    }
+
 private:
     CMatrixV<float> m_myImage;
 };
