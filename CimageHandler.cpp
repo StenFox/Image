@@ -206,3 +206,36 @@ void CImageHandler::gaussPyramid( CImage& _img, int _octaves,int sclaes, float s
         downSpace( _img );
     }
 }
+
+void CImageHandler::moravec( CImage& _myImg, float T )
+{
+    unsigned windowHeight = 3;
+    unsigned windowWidth = 3;
+    vector<pair<int,int>> shift ={{1,0},{-1,0},{0,1},{0,-1},{1,1},{1,-1},{-1,1},{-1,-1}};
+    vector<pair<int,int>> point;
+    for(int y = 1; y < _myImg.getHeight()-1; y++)
+    {
+        for (int x = 1; x < _myImg.getWidth()-1; x++)
+        {
+            int ver = 0;
+            for(int sh = 0;sh < shift.size();sh++)
+            {
+                float sum = 0;
+                for(int j = 0; j < windowHeight; j++ )
+                {
+                    for( int i =0; i < windowWidth; i++ )
+                    {
+                        float dif = _myImg.getPixel( y+j,x+i ) - _myImg.getPixel(y+j+shift[sh].first,x+i+shift[sh].second);
+                        dif = dif * dif;
+                        sum += dif;
+                    }
+                }
+                if( sum > T )
+                    ver++;
+            }
+            if( ver > 3 )
+                point.push_back(make_pair(y,x));
+        }
+    }
+}
+

@@ -167,6 +167,8 @@ private:
 
     // Билинейная интерполяция
     std::vector<float> resizeBilinear( const CImage& _img, int _widthOld, int _heightOld, int _widthNew, int _heightNew );
+
+    void moravec( CImage& _myImg, float T );
 };
 
 #endif // CIMAGEHANDLER_H
