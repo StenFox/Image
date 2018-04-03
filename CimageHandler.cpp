@@ -222,18 +222,18 @@ QImage CImageHandler::setRedPointsOfInterest( CImage& _myImg, vector<pair<int,in
         QRgb *end = pixel + _myImg.getHeight();
         for ( int j =0; pixel != end; pixel++,j++ )
         {
-            auto it = std::find_if( _interestPoints.begin(),_interestPoints.end(),[i,j](const pair<int,int>& point){ return ( point.first == j && point.second == i );});
-            if(it!=_interestPoints.end())
-            {
-                *pixel = QColor( 255, 0, 0 ).rgb();
-            }
-            else
-            {
-                int item = _myImg.getPixel(i,j);
-                *pixel = QColor( item, item, item ).rgb();
-            }
+            
+             int item = _myImg.getPixel(i,j);
+             *pixel = QColor( item, item, item ).rgb();
         }
     }
+
+    auto red = QColor( 255, 0, 0 ).rgb();
+    for (int i = 0; i < _interestPoints.size(); i++)
+    {
+         img.setPixel( _interestPoints[i].second, _interestPoints[i].first,red );
+    }
+
     return img;
 }
 
@@ -271,7 +271,7 @@ vector<pair<int,int>> CImageHandler::moravec( CImage& _myImg, float T )
                 }
                 ErrorShift[sh] = sum;
             }
-            auto minErrorShift = std::min_element (ErrorShift.begin(),ErrorShift.end() );
+            auto minErrorShift = std::min_element( ErrorShift.begin(),ErrorShift.end() );
             if( *minErrorShift > T )
                 point.push_back( make_pair( y,x ) );
         }
