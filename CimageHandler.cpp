@@ -56,19 +56,19 @@ void CImageHandler::robert( mtProcessingEdgeEffects _method, CImage& _image  )
 }
 
 //-----------------------------------------------------------------------------------
-CImage* CImageHandler::resizeTwo( CImage& _myImg )
+CImage* CImageHandler::resizeTwo( CImage& _myImage )
 {
-    vector<float> temp = resizeBilinear( _myImg,_myImg.getWidth(),_myImg.getHeight(),_myImg.getWidth()/2,_myImg.getHeight()/2 );
-    return new CImage( _myImg.getHeight()/2,_myImg.getWidth()/2,temp );
+    vector<float> temp = resizeBilinear( _myImage,_myImage.getWidth(),_myImage.getHeight(),_myImage.getWidth()/2,_myImage.getHeight()/2 );
+    return new CImage( _myImage.getHeight()/2,_myImage.getWidth()/2,temp );
 }
 
 //-----------------------------------------------------------------------------------
-void CImageHandler::downSpace( CImage& _myImg )
+void CImageHandler::downSpace( CImage& _myImage )
 {
-    int newW =_myImg.getWidth()/2;
-    int newH =_myImg.getHeight()/2;
-    vector<float> temp = resizeBilinear( _myImg,_myImg.getWidth(),_myImg.getHeight(),newW, newH );
-    _myImg.resize(newH,newW,temp);
+    int newW =_myImage.getWidth()/2;
+    int newH =_myImage.getHeight()/2;
+    vector<float> temp = resizeBilinear( _myImage,_myImage.getWidth(),_myImage.getHeight(),newW, newH );
+    _myImage.resize(newH,newW,temp);
     temp.clear();
 }
 
@@ -181,12 +181,12 @@ float pifagor(float sigmaNext,float sigmaPrev)
 }
 
 //-----------------------------------------------------------------------------------
-void CImageHandler::gaussPyramid( CImage& _img, int _octaves,int sclaes, float sigmaZero )
+void CImageHandler::gaussPyramid( CImage& _img, int _octaves,int scales, float sigmaZero )
 {
     float sigmaPrev;
     float sigmaNext;
     float deltaSigma;
-    float k = pow( sclaes, (float)1/sclaes);
+    float k = pow( scales, (float)1 / scales);
     sigmaPrev = 0.5;
     sigmaNext = sigmaPrev * k;
     deltaSigma = pifagor( sigmaNext,sigmaPrev );
@@ -213,18 +213,18 @@ void CImageHandler::gaussPyramid( CImage& _img, int _octaves,int sclaes, float s
 }
 
 //-----------------------------------------------------------------------------------
-QImage CImageHandler::setRedPointsOfInterest( CImage& _myImg, vector<pair<int,int>> _interestPoints )
+QImage CImageHandler::setRedPointsOfInterest( CImage& _myImage, vector<pair<int,int>> _interestPoints )
 {
-    QImage img ( _myImg.getWidth() ,_myImg.getHeight(), QImage::Format_RGB32 );
-    _myImg.normalizeImage();
-    for ( int i = 0; i < _myImg.getHeight(); i++ )
+    QImage img ( _myImage.getWidth() ,_myImage.getHeight(), QImage::Format_RGB32 );
+    _myImage.normalizeImage();
+    for ( int i = 0; i < _myImage.getHeight(); i++ )
     {
-        QRgb *pixel = reinterpret_cast<QRgb*>( img.scanLine(i) );
-        QRgb *end = pixel + _myImg.getHeight();
+        QRgb *pixel = reinterpret_cast<QRgb*>( img.scanLine( i ) );
+        QRgb *end = pixel + _myImage.getHeight();
         for ( int j =0; pixel != end; pixel++,j++ )
         {
             
-             int item = _myImg.getPixel(i,j);
+             int item = _myImage.getPixel( i,j );
              *pixel = QColor( item, item, item ).rgb();
         }
     }
@@ -239,31 +239,38 @@ QImage CImageHandler::setRedPointsOfInterest( CImage& _myImg, vector<pair<int,in
 }
 
 //-----------------------------------------------------------------------------------
-QImage CImageHandler::showInterestPointMoravec( CImage& _myImg, float T, size_t _windowHeight, size_t _windowWidth )
+QImage CImageHandler::showInterestPointMoravec( CImage& _myImage, float T, size_t _windowHeight, size_t _windowWidth )
 {
-    return setRedPointsOfInterest( _myImg, moravec( _myImg,T, _windowHeight, _windowWidth ) );
+    return setRedPointsOfInterest( _myImage, moravec( _myImage,T, _windowHeight, _windowWidth ) );
 }
 
-// T пороговое значиние
-vector<pair<int,int>> CImageHandler::moravec( CImage& _myImg, float T, size_t windowHeight, size_t windowWidth  )
+//-----------------------------------------------------------------------------------
+QImage CImageHandler::showInterestPointHarris( CImage& _myImage, float T, float _k, bool _useNonMaximum, int _colPoints )
 {
-    auto offsetx = windowWidth / 2;
-    auto offsety = windowHeight / 2;
+    return setRedPointsOfInterest( _myImage, harris( _myImage,T, _k, _useNonMaximum, _colPoints ) );
+}
+
+//-----------------------------------------------------------------------------------
+// T пороговое значиние
+vector<pair<int,int>> CImageHandler::moravec( CImage& _myImage, float _T, size_t _windowHeight, size_t _windowWidth  )
+{
+    auto offsetx = _windowWidth / 2;
+    auto offsety = _windowHeight / 2;
     vector<pair<int,int>> point;
-    for( size_t y = 1 + offsety; y < _myImg.getHeight() - offsety - 1; y++)
+    for( size_t y = 1 + offsety; y < _myImage.getHeight() - offsety - 1; y++)
     {
-        for( size_t x = 1 + offsetx; x < _myImg.getWidth() - offsetx  - 1; x++)
+        for( size_t x = 1 + offsetx; x < _myImage.getWidth() - offsetx  - 1; x++)
         {
             vector<float> ErrorShift;
             ErrorShift.resize( g_shiftWindow.size() );
             for( size_t sh = 0;sh < g_shiftWindow.size(); sh++ )
             {
                 float sum = 0;
-                for( size_t j = 0; j < windowHeight; j++ )
+                for( size_t j = 0; j < _windowHeight; j++ )
                 {
-                    for( size_t i = 0; i < windowWidth; i++ )
+                    for( size_t i = 0; i < _windowWidth; i++ )
                     {
-                        float dif = _myImg.getPixel( y + j - offsety,x + i - offsetx ) - _myImg.getPixel( y + j - offsety + g_shiftWindow[sh].first, x + i - offsetx + g_shiftWindow[sh].second );
+                        float dif = _myImage.getPixel( y + j - offsety,x + i - offsetx ) - _myImage.getPixel( y + j - offsety + g_shiftWindow[sh].first, x + i - offsetx + g_shiftWindow[sh].second );
                         dif = dif * dif;
                         sum += dif;
                     }
@@ -271,7 +278,7 @@ vector<pair<int,int>> CImageHandler::moravec( CImage& _myImg, float T, size_t wi
                 ErrorShift[sh] = sum;
             }
             auto minErrorShift = std::min_element( ErrorShift.begin(),ErrorShift.end() );
-            if( *minErrorShift > T )
+            if( *minErrorShift > _T )
                 point.push_back( make_pair( y,x ) );
         }
     }
@@ -279,7 +286,7 @@ vector<pair<int,int>> CImageHandler::moravec( CImage& _myImg, float T, size_t wi
 }
 
 //-----------------------------------------------------------------------------------
-vector<pair<int,int>> CImageHandler::harris( CImage& _myImage, float T , float _k, bool _useNonMaximum, int _colPoint )
+vector<pair<int,int>> CImageHandler::harris( CImage& _myImage, float _T , float _k, bool _useNonMaximum, int _colPoints )
 {
     CImage temp = _myImage;
     sobel( mtBlackEdge,temp );
@@ -301,7 +308,7 @@ vector<pair<int,int>> CImageHandler::harris( CImage& _myImage, float T , float _
             B = temp.getPixel(j,i);
             C = dy[ j * _myImage.getWidth() + i ] * dy[ j * _myImage.getWidth() + i ];
             M = ( A * C - B * B ) - _k *( ( A + C ) * ( A + C ) );
-            if( M > T )
+            if( M > _T )
             {
                 point.push_back( make_pair( j,i ) );
                 value[ j * _myImage.getWidth() + i ] = M;
@@ -310,32 +317,33 @@ vector<pair<int,int>> CImageHandler::harris( CImage& _myImage, float T , float _
     }
 
     if( _useNonMaximum )
-        return nonMaximumPoints( _myImage, value, _colPoint );
+        return nonMaximumPoints( _myImage, value, _colPoints );
     else
         return point;
 }
 
-vector< pair<int,int> > CImageHandler::nonMaximumPoints( CImage& _myImg ,vector<float>& _value, int _colPoint )
+//-----------------------------------------------------------------------------------
+vector< pair<int,int> > CImageHandler::nonMaximumPoints( CImage& _myImage ,vector<float>& _value, int _colPoints )
 {
     vector<pair<int,int>> point;
     int r = 3;
     auto _col = std::count_if( _value.begin(), _value.end(),[]( float i ){ return i > 0; } );
-    while( _col > _colPoint)
+    while( _col > _colPoints )
     {
-        for(int j = 0; j < _myImg.getHeight(); j++)
+        for(int j = 0; j < _myImage.getHeight(); j++)
         {
-            for (int i = 0; i < _myImg.getWidth(); i++)
+            for (int i = 0; i < _myImage.getWidth(); i++)
             {
-                if( _value[ j * _myImg.getWidth() + i ] == 0 )
+                if( _value[ j * _myImage.getWidth() + i ] == 0 )
                     continue;
-                for(int j = -r; j <= r; j++ )
+                for(int ri = -r; ri <= r; ri++ )
                 {
-                    int index = j * _myImg.getWidth() + i + r;
-                    if( index < 0 || index >= _myImg.getHeight() * _myImg.getWidth() )
+                    int index = j * _myImage.getWidth() + i + ri;
+                    if( index < 0 || index >= _myImage.getHeight() * _myImage.getWidth() )
                         continue;
-                    if( _value[ j * _myImg.getWidth() + i ] < _value[ j * _myImg.getWidth() + i + r ])
+                    if( _value[ j * _myImage.getWidth() + i ] < _value[ j * _myImage.getWidth() + i + ri ] )
                     {
-                        _value[ j * _myImg.getWidth() + i ] = 0;
+                        _value[ j * _myImage.getWidth() + i ] = 0;
                         break;
                     }
                 }
@@ -346,12 +354,12 @@ vector< pair<int,int> > CImageHandler::nonMaximumPoints( CImage& _myImg ,vector<
     }
 
 
-    for(int j = 0; j < _myImg.getHeight(); j++)
+    for(int j = 0; j < _myImage.getHeight(); j++)
     {
-        for( int i = 0; i < _myImg.getWidth(); i++)
+        for( int i = 0; i < _myImage.getWidth(); i++)
         {
-            if( _value[ j * _myImg.getWidth() + i ] != 0 )
-                point.push_back(make_pair(j,i));
+            if( _value[ j * _myImage.getWidth() + i ] != 0 )
+                point.push_back( make_pair( j,i ) );
         }
     }
     return point;

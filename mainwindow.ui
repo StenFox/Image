@@ -164,6 +164,19 @@
      <string>Моравик</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="HarrisonButton">
+    <property name="geometry">
+     <rect>
+      <x>830</x>
+      <y>370</y>
+      <width>161</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Харисон</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">

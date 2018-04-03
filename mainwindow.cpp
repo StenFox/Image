@@ -80,3 +80,12 @@ void MainWindow::on_MoravecButton_clicked()
     scene->addItem(item);
     ui->graphicsView->setScene(scene);
 }
+
+void MainWindow::on_HarrisonButton_clicked()
+{
+    ui->graphicsView->scene()->clear();
+    QGraphicsScene *scene = new QGraphicsScene();
+    QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage( myImageHandler->showInterestPointHarris( *myImage,45000,0.06,true,400 ) ) );
+    scene->addItem( item );
+    ui->graphicsView->setScene( scene );
+}

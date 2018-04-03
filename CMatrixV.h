@@ -29,6 +29,7 @@ public:
     {
         m_columns = _matrix.m_columns;
         m_rows = _matrix.m_rows;
+        m_matrix.resize( m_rows * m_columns );
         std::copy( _matrix.m_matrix.begin(), _matrix.m_matrix.end(), m_matrix.begin() );
         return *this;
     }

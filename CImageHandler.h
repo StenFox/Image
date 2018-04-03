@@ -18,10 +18,11 @@ enum mtProcessingEdgeEffects
 class CImageHandler
 {
 public:
+
     CImageHandler();
 
-    //
-    void gaussPyramid( CImage& _img, int _octaves,int sclaes, float sigmaZero );
+    // Пирамида Гаусса
+    void gaussPyramid( CImage& _myImage, int _octaves,int sclaes, float sigmaZero );
 
     // Оператор Собеля
     void sobel( mtProcessingEdgeEffects _method, CImage& _image );
@@ -37,14 +38,17 @@ public:
 
     // Оператор Робертса
     void robert( mtProcessingEdgeEffects _method, CImage& _image );
+
     // Билинейная интреполяция уменьшаем изображение в 2 раза
-    CImage* resizeTwo( CImage& _myImg );
+    CImage* resizeTwo( CImage& _myImage );
 
-    QImage showInterestPointMoravec( CImage& _myImg, float T, size_t _windowHeight, size_t _windowWidth );
+    // Отобразить точки интереса с помощью Морравика
+    QImage showInterestPointMoravec( CImage& _myImage, float T, size_t _windowHeight, size_t _windowWidth );
 
-private:
+    // Отобразить точки интереса с помощью Харриса
+    QImage showInterestPointHarris( CImage& _myImage, float T, float _k, bool _useNonMaximum, int _colPoints );
 
-    void downSpace( CImage& _myImg );
+private:    
     // Ядро Собель по X
     static const CMatrixV<int> g_sobelX;
 
@@ -63,8 +67,11 @@ private:
     // Ядро Робертс по Y
     static CMatrixV<int> g_robertY;
 
-    // Вектор сдвигов точек
+    // Вектор сдвигов
     static const std::vector<std::pair<int,int>> g_shiftWindow;
+
+    // Уменьшение изображения в 2 раза с помощью билинейной интерполяции
+    void downSpace( CImage& _myImage );
 
     // Магнитуда или вычисление Величины градиента
     void magnitude( CImage& _input, const std::vector<float>& _gx, const std::vector<float>& _gy );
@@ -160,6 +167,7 @@ private:
     // Две последовательных свёртки для ускорния
     void convolutionForGauss( float _sigma, CImage& _myImage, mtProcessingEdgeEffects _method );
 
+    // Применить свёртку к изображению
     void applyConvolution( std::vector<float>& _vector, CImage& _myImage )
     {
         for (int i = 0; i < _myImage.getHeight(); ++i)
@@ -172,15 +180,19 @@ private:
     }
 
     // Билинейная интерполяция
-    std::vector<float> resizeBilinear( const CImage& _img, int _widthOld, int _heightOld, int _widthNew, int _heightNew );
+    std::vector<float> resizeBilinear( const CImage& _myImage, int _widthOld, int _heightOld, int _widthNew, int _heightNew );
 
-    QImage setRedPointsOfInterest( CImage& _myImg, std::vector<std::pair<int,int>> _interestPoints );
+    // Отметить на ихображении точки интереса
+    QImage setRedPointsOfInterest( CImage& _myImage, std::vector<std::pair<int,int>> _interestPoints );
 
-    std::vector< std::pair<int,int> > moravec( CImage& _myImg, float T, size_t windowHeight, size_t windowWidth );
+    // Детектор
+    std::vector< std::pair<int,int> > moravec( CImage& _myImage, float _T, size_t _windowHeight, size_t _windowWidth );
 
-    std::vector< std::pair<int,int> > harris( CImage& _myImage, float T , float _k, bool useNonMaximum, int _colPoint );
+    // Детектор Харриса
+    std::vector< std::pair<int,int> > harris( CImage& _myImage, float _T , float _k, bool _useNonMaximum, int _colPoint );
 
-    std::vector< std::pair<int,int> > nonMaximumPoints( CImage& _myImg, std::vector<float>& _value, int _colPoint );
+    // Подавление не максимальных элементов
+    std::vector< std::pair<int,int> > nonMaximumPoints( CImage& _myImage, std::vector<float>& _value, int _colPoints );
 };
 
 #endif // CIMAGEHANDLER_H
