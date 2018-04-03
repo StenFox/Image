@@ -56,6 +56,13 @@ public:
         m_matrix = std::move( _vectorForCopy );
     }
 
+    ~CMatrixV()
+    {
+        m_columns = 0;
+        m_rows = 0;
+        m_matrix.clear();
+    }
+
     int getColumns() const
     {
         return m_columns;
@@ -93,40 +100,39 @@ public:
 
     void normalize()
     {
-        auto it_min = std::min_element(m_matrix.begin(),m_matrix.end());
+        auto it_min = std::min_element( m_matrix.begin(), m_matrix.end() );
         T min = *it_min;
-        if(min<0)
-            for (auto i = 0; i < m_matrix.size(); i++)
+        if( min<0 )
+            for( size_t i = 0; i < m_matrix.size(); i++)
             {
-                m_matrix[i]+=min;
+                m_matrix[i] += min;
             }
 
-        auto it_max = std::max_element(m_matrix.begin(),m_matrix.end());
+        auto it_max = std::max_element( m_matrix.begin(),m_matrix.end() );
         T max = *it_max;
         if( max > 255 )
-        for (auto i = 0; i < m_matrix.size(); i++)
+        for( size_t i = 0; i < m_matrix.size(); i++)
         {
-            m_matrix[i]/=max;
-            m_matrix[i]*=255;
+            m_matrix[i] /= max;
+            m_matrix[i] *= 255;
         }
     }
 
     void oneNormalize()
     {
-        auto it_min = std::min_element(m_matrix.begin(),m_matrix.end());
+        auto it_min = std::min_element( m_matrix.begin(),m_matrix.end() );
         T min = *it_min;
-        if(min<0)
-            for (auto i = 0; i < m_matrix.size(); i++)
+        if( min < 0 )
+            for (size_t i = 0; i < m_matrix.size(); i++)
             {
-                m_matrix[i]+=min;
+                m_matrix[i] += min;
             }
 
-        auto it_max = std::max_element(m_matrix.begin(),m_matrix.end());
+        auto it_max = std::max_element( m_matrix.begin(),m_matrix.end() );
         T max = *it_max;
-        for (auto i = 0; i < m_matrix.size(); i++)
+        for( size_t i = 0; i < m_matrix.size(); i++ )
         {
-            m_matrix[i]/=max;
-            //m_matrix[i]*=255;
+            m_matrix[i] /= max;
         }
     }
 

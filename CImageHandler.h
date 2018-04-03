@@ -40,7 +40,7 @@ public:
     // Билинейная интреполяция уменьшаем изображение в 2 раза
     CImage* resizeTwo( CImage& _myImg );
 
-    QImage showInterestPointMoravec( CImage& _myImg, float T );
+    QImage showInterestPointMoravec( CImage& _myImg, float T, size_t _windowHeight, size_t _windowWidth );
 
 private:
 
@@ -176,9 +176,11 @@ private:
 
     QImage setRedPointsOfInterest( CImage& _myImg, std::vector<std::pair<int,int>> _interestPoints );
 
-    std::vector<std::pair<int,int>> moravec( CImage& _myImg, float T );
+    std::vector< std::pair<int,int> > moravec( CImage& _myImg, float T, size_t windowHeight, size_t windowWidth );
 
-    void harris( CImage& _myImage, float T );
+    std::vector< std::pair<int,int> > harris( CImage& _myImage, float T , float _k, bool useNonMaximum, int _colPoint );
+
+    std::vector< std::pair<int,int> > nonMaximumPoints( CImage& _myImg, std::vector<float>& _value, int _colPoint );
 };
 
 #endif // CIMAGEHANDLER_H

@@ -1,5 +1,6 @@
 #include "CImageHandler.h"
 #include "CImageKernels.h"
+#include <map>
 
 using namespace  std;
 
@@ -229,7 +230,7 @@ QImage CImageHandler::setRedPointsOfInterest( CImage& _myImg, vector<pair<int,in
     }
 
     auto red = QColor( 255, 0, 0 ).rgb();
-    for (int i = 0; i < _interestPoints.size(); i++)
+    for( size_t i = 0; i < _interestPoints.size(); i++)
     {
          img.setPixel( _interestPoints[i].second, _interestPoints[i].first,red );
     }
@@ -238,31 +239,29 @@ QImage CImageHandler::setRedPointsOfInterest( CImage& _myImg, vector<pair<int,in
 }
 
 //-----------------------------------------------------------------------------------
-QImage CImageHandler::showInterestPointMoravec(CImage& _myImg, float T)
+QImage CImageHandler::showInterestPointMoravec( CImage& _myImg, float T, size_t _windowHeight, size_t _windowWidth )
 {
-    return setRedPointsOfInterest(_myImg,moravec(_myImg,T));
+    return setRedPointsOfInterest( _myImg, moravec( _myImg,T, _windowHeight, _windowWidth ) );
 }
 
 // T пороговое значиние
-vector<pair<int,int>> CImageHandler::moravec( CImage& _myImg, float T )
+vector<pair<int,int>> CImageHandler::moravec( CImage& _myImg, float T, size_t windowHeight, size_t windowWidth  )
 {
-    unsigned windowHeight = 3;
-    unsigned windowWidth = 3;
     auto offsetx = windowWidth / 2;
     auto offsety = windowHeight / 2;
     vector<pair<int,int>> point;
-    for(int y = 1 + offsety; y < _myImg.getHeight() - offsety - 1; y++)
+    for( size_t y = 1 + offsety; y < _myImg.getHeight() - offsety - 1; y++)
     {
-        for (int x = 1 + offsetx; x < _myImg.getWidth() - offsetx  - 1; x++)
+        for( size_t x = 1 + offsetx; x < _myImg.getWidth() - offsetx  - 1; x++)
         {
             vector<float> ErrorShift;
-            ErrorShift.resize(g_shiftWindow.size());
-            for(int sh = 0;sh < g_shiftWindow.size();sh++)
+            ErrorShift.resize( g_shiftWindow.size() );
+            for( size_t sh = 0;sh < g_shiftWindow.size(); sh++ )
             {
                 float sum = 0;
-                for(int j = 0; j < windowHeight; j++ )
+                for( size_t j = 0; j < windowHeight; j++ )
                 {
-                    for( int i =0; i < windowWidth; i++ )
+                    for( size_t i = 0; i < windowWidth; i++ )
                     {
                         float dif = _myImg.getPixel( y + j - offsety,x + i - offsetx ) - _myImg.getPixel( y + j - offsety + g_shiftWindow[sh].first, x + i - offsetx + g_shiftWindow[sh].second );
                         dif = dif * dif;
@@ -280,8 +279,81 @@ vector<pair<int,int>> CImageHandler::moravec( CImage& _myImg, float T )
 }
 
 //-----------------------------------------------------------------------------------
-void CImageHandler::harris( CImage& _myImage, float T )
+vector<pair<int,int>> CImageHandler::harris( CImage& _myImage, float T , float _k, bool _useNonMaximum, int _colPoint )
 {
+    CImage temp = _myImage;
+    sobel( mtBlackEdge,temp );
+    vector<float> dx = convolution( g_sobelX, _myImage, mtBlackEdge );
+    vector<float> dy = convolution( g_sobelY, _myImage, mtBlackEdge );
 
+    vector<pair<int,int>> point;
+
+    vector<float> value;
+    value.resize( _myImage.getHeight() * _myImage.getWidth() );
+
+    float A,B,C,M;
+
+    for( auto j = 0; j < _myImage.getHeight(); j++)
+    {
+        for( auto i = 0; i < _myImage.getWidth();i++)
+        {
+            A = dx[ j * _myImage.getWidth() + i ] * dx[ j * _myImage.getWidth() + i ];
+            B = temp.getPixel(j,i);
+            C = dy[ j * _myImage.getWidth() + i ] * dy[ j * _myImage.getWidth() + i ];
+            M = ( A * C - B * B ) - _k *( ( A + C ) * ( A + C ) );
+            if( M > T )
+            {
+                point.push_back( make_pair( j,i ) );
+                value[ j * _myImage.getWidth() + i ] = M;
+            }
+        }
+    }
+
+    if( _useNonMaximum )
+        return nonMaximumPoints( _myImage, value, _colPoint );
+    else
+        return point;
+}
+
+vector< pair<int,int> > CImageHandler::nonMaximumPoints( CImage& _myImg ,vector<float>& _value, int _colPoint )
+{
+    vector<pair<int,int>> point;
+    int r = 3;
+    auto _col = std::count_if( _value.begin(), _value.end(),[]( float i ){ return i > 0; } );
+    while( _col > _colPoint)
+    {
+        for(int j = 0; j < _myImg.getHeight(); j++)
+        {
+            for (int i = 0; i < _myImg.getWidth(); i++)
+            {
+                if( _value[ j * _myImg.getWidth() + i ] == 0 )
+                    continue;
+                for(int j = -r; j <= r; j++ )
+                {
+                    int index = j * _myImg.getWidth() + i + r;
+                    if( index < 0 || index >= _myImg.getHeight() * _myImg.getWidth() )
+                        continue;
+                    if( _value[ j * _myImg.getWidth() + i ] < _value[ j * _myImg.getWidth() + i + r ])
+                    {
+                        _value[ j * _myImg.getWidth() + i ] = 0;
+                        break;
+                    }
+                }
+            }
+        }
+        _col = std::count_if( _value.begin(),_value.end(),[]( float i ){ return i > 0; } );
+        r++;
+    }
+
+
+    for(int j = 0; j < _myImg.getHeight(); j++)
+    {
+        for( int i = 0; i < _myImg.getWidth(); i++)
+        {
+            if( _value[ j * _myImg.getWidth() + i ] != 0 )
+                point.push_back(make_pair(j,i));
+        }
+    }
+    return point;
 }
 
