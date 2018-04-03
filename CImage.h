@@ -70,6 +70,11 @@ public:
         m_myImage.oneNormalize();
     }
 
+    void normalizeImage()
+    {
+        m_myImage.normalize();
+    }
+
 private:
     CMatrixV<float> m_myImage;
 };

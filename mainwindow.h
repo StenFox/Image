@@ -28,6 +28,8 @@ private slots:
 
     void on_pushButton_clicked();
 
+    void on_MoravecButton_clicked();
+
 private:
     CImage* myImage;
     CImage* newImage;

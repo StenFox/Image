@@ -12,6 +12,8 @@ CMatrixV<int> CImageHandler::g_prewittY( 3, 3, VprewittY );
 CMatrixV<int> CImageHandler::g_robertX( 3, 3, VrobertX );
 CMatrixV<int> CImageHandler::g_robertY( 3, 3, VrobertY );
 
+const vector<pair<int,int>> CImageHandler::g_shiftWindow = { {1,0}, {-1,0}, {0,1}, {0,-1}, {1,1}, {1,-1}, {-1,1} , {-1,-1} };
+
 //-----------------------------------------------------------------------------------
 CImageHandler::CImageHandler()
 {
@@ -171,11 +173,13 @@ vector<float> CImageHandler::resizeBilinear( const CImage& _img, int _widthOld, 
     return temp;
 }
 
+//-----------------------------------------------------------------------------------
 float pifagor(float sigmaNext,float sigmaPrev)
 {
     return sqrt(sigmaNext * sigmaNext - sigmaPrev * sigmaPrev);
 }
 
+//-----------------------------------------------------------------------------------
 void CImageHandler::gaussPyramid( CImage& _img, int _octaves,int sclaes, float sigmaZero )
 {
     float sigmaPrev;
@@ -207,35 +211,77 @@ void CImageHandler::gaussPyramid( CImage& _img, int _octaves,int sclaes, float s
     }
 }
 
-void CImageHandler::moravec( CImage& _myImg, float T )
+//-----------------------------------------------------------------------------------
+QImage CImageHandler::setRedPointsOfInterest( CImage& _myImg, vector<pair<int,int>> _interestPoints )
+{
+    QImage img ( _myImg.getWidth() ,_myImg.getHeight(), QImage::Format_RGB32 );
+    _myImg.normalizeImage();
+    for ( int i = 0; i < _myImg.getHeight(); i++ )
+    {
+        QRgb *pixel = reinterpret_cast<QRgb*>( img.scanLine(i) );
+        QRgb *end = pixel + _myImg.getHeight();
+        for ( int j =0; pixel != end; pixel++,j++ )
+        {
+            auto it = std::find_if( _interestPoints.begin(),_interestPoints.end(),[i,j](const pair<int,int>& point){ return ( point.first == j && point.second == i );});
+            if(it!=_interestPoints.end())
+            {
+                *pixel = QColor( 255, 0, 0 ).rgb();
+            }
+            else
+            {
+                int item = _myImg.getPixel(i,j);
+                *pixel = QColor( item, item, item ).rgb();
+            }
+        }
+    }
+    return img;
+}
+
+//-----------------------------------------------------------------------------------
+QImage CImageHandler::showInterestPointMoravec(CImage& _myImg, float T)
+{
+    return setRedPointsOfInterest(_myImg,moravec(_myImg,T));
+}
+
+// T пороговое значиние
+vector<pair<int,int>> CImageHandler::moravec( CImage& _myImg, float T )
 {
     unsigned windowHeight = 3;
     unsigned windowWidth = 3;
-    vector<pair<int,int>> shift ={{1,0},{-1,0},{0,1},{0,-1},{1,1},{1,-1},{-1,1},{-1,-1}};
+    auto offsetx = windowWidth / 2;
+    auto offsety = windowHeight / 2;
     vector<pair<int,int>> point;
-    for(int y = 1; y < _myImg.getHeight()-1; y++)
+    for(int y = 1 + offsety; y < _myImg.getHeight() - offsety - 1; y++)
     {
-        for (int x = 1; x < _myImg.getWidth()-1; x++)
+        for (int x = 1 + offsetx; x < _myImg.getWidth() - offsetx  - 1; x++)
         {
-            int ver = 0;
-            for(int sh = 0;sh < shift.size();sh++)
+            vector<float> ErrorShift;
+            ErrorShift.resize(g_shiftWindow.size());
+            for(int sh = 0;sh < g_shiftWindow.size();sh++)
             {
                 float sum = 0;
                 for(int j = 0; j < windowHeight; j++ )
                 {
                     for( int i =0; i < windowWidth; i++ )
                     {
-                        float dif = _myImg.getPixel( y+j,x+i ) - _myImg.getPixel(y+j+shift[sh].first,x+i+shift[sh].second);
+                        float dif = _myImg.getPixel( y + j - offsety,x + i - offsetx ) - _myImg.getPixel( y + j - offsety + g_shiftWindow[sh].first, x + i - offsetx + g_shiftWindow[sh].second );
                         dif = dif * dif;
                         sum += dif;
                     }
                 }
-                if( sum > T )
-                    ver++;
+                ErrorShift[sh] = sum;
             }
-            if( ver > 3 )
-                point.push_back(make_pair(y,x));
+            auto minErrorShift = std::min_element (ErrorShift.begin(),ErrorShift.end() );
+            if( *minErrorShift > T )
+                point.push_back( make_pair( y,x ) );
         }
     }
+    return point;
+}
+
+//-----------------------------------------------------------------------------------
+void CImageHandler::harris( CImage& _myImage, float T )
+{
+
 }
 

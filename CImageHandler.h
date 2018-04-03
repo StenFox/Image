@@ -39,6 +39,9 @@ public:
     void robert( mtProcessingEdgeEffects _method, CImage& _image );
     // Билинейная интреполяция уменьшаем изображение в 2 раза
     CImage* resizeTwo( CImage& _myImg );
+
+    QImage showInterestPointMoravec( CImage& _myImg, float T );
+
 private:
 
     void downSpace( CImage& _myImg );
@@ -59,6 +62,9 @@ private:
 
     // Ядро Робертс по Y
     static CMatrixV<int> g_robertY;
+
+    // Вектор сдвигов точек
+    static const std::vector<std::pair<int,int>> g_shiftWindow;
 
     // Магнитуда или вычисление Величины градиента
     void magnitude( CImage& _input, const std::vector<float>& _gx, const std::vector<float>& _gy );
@@ -168,7 +174,11 @@ private:
     // Билинейная интерполяция
     std::vector<float> resizeBilinear( const CImage& _img, int _widthOld, int _heightOld, int _widthNew, int _heightNew );
 
-    void moravec( CImage& _myImg, float T );
+    QImage setRedPointsOfInterest( CImage& _myImg, std::vector<std::pair<int,int>> _interestPoints );
+
+    std::vector<std::pair<int,int>> moravec( CImage& _myImg, float T );
+
+    void harris( CImage& _myImage, float T );
 };
 
 #endif // CIMAGEHANDLER_H

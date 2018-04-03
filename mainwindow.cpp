@@ -71,3 +71,12 @@ void MainWindow::on_pushButton_clicked()
     scene->addItem(item);
     ui->graphicsView->setScene(scene);
 }
+
+void MainWindow::on_MoravecButton_clicked()
+{
+    ui->graphicsView->scene()->clear();
+    QGraphicsScene *scene = new QGraphicsScene();
+    QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage( myImageHandler->showInterestPointMoravec( *myImage,1400 ) ) );
+    scene->addItem(item);
+    ui->graphicsView->setScene(scene);
+}
