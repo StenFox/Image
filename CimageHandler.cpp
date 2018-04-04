@@ -336,15 +336,18 @@ vector< pair<int,int> > CImageHandler::nonMaximumPoints( CImage& _myImage ,vecto
             {
                 if( _value[ j * _myImage.getWidth() + i ] == 0 )
                     continue;
-                for(int ri = -r; ri <= r; ri++ )
+                for(int rj = -r; rj <= r; rj++ )
                 {
-                    int index = j * _myImage.getWidth() + i + ri;
-                    if( index < 0 || index >= _myImage.getHeight() * _myImage.getWidth() )
-                        continue;
-                    if( _value[ j * _myImage.getWidth() + i ] < _value[ j * _myImage.getWidth() + i + ri ] )
+                    for(int ri = -r; ri <= r; ri++ )
                     {
-                        _value[ j * _myImage.getWidth() + i ] = 0;
-                        break;
+                        int index = j + rj * _myImage.getWidth() + i + ri;
+                        if( index < 0 || index >= _myImage.getHeight() * _myImage.getWidth() )
+                            continue;
+                        if( _value[ j * _myImage.getWidth() + i ] < _value[ j + rj * _myImage.getWidth() + i + ri ] )
+                        {
+                            _value[ j * _myImage.getWidth() + i ] = 0;
+                            break;
+                        }
                     }
                 }
             }
