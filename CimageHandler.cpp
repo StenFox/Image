@@ -1,5 +1,6 @@
 #include "CImageHandler.h"
 #include "CImageKernels.h"
+#include "CPyramid.h"
 #include <map>
 
 using namespace  std;
@@ -186,23 +187,17 @@ void CImageHandler::gaussPyramid( CImage& _img, int _octaves,int scales, float s
     float sigmaPrev;
     float sigmaNext;
     float deltaSigma;
-    float k = pow( scales, (float)1 / scales);
     sigmaPrev = 0.5;
-    sigmaNext = sigmaPrev * k;
-    deltaSigma = pifagor( sigmaNext,sigmaPrev );
-    while( sigmaNext < sigmaZero )
-    {
-        gaussianBlur( deltaSigma,_img, mtBlackEdge );
-        sigmaPrev = sigmaNext;
-        sigmaNext = sigmaPrev * k;
-    }
-
-    for (int i = 0; i < _octaves; i++)
+    float k = pow( 2, (float)1 / scales);
+    deltaSigma = pifagor( sigmaPrev,sigmaZero );
+    gaussianBlur( deltaSigma,_img, mtBlackEdge );
+    for( int i = 0; i < _octaves; i++ )
     {
         sigmaPrev = sigmaZero;
         sigmaNext = sigmaPrev * k;
         deltaSigma = pifagor( sigmaNext,sigmaPrev );
-        while( sigmaNext < 2*sigmaZero )
+        //while( sigmaNext < 2 * sigmaZero )
+        for( int j = 0; j < scales; j++ )
         {
              gaussianBlur( deltaSigma, _img, mtBlackEdge );
              sigmaPrev = sigmaNext;
@@ -257,9 +252,13 @@ vector<pair<int,int>> CImageHandler::moravec( CImage& _myImage, float _T, size_t
     auto offsetx = _windowWidth / 2;
     auto offsety = _windowHeight / 2;
     vector<pair<int,int>> point;
-    for( size_t y = 1 + offsety; y < _myImage.getHeight() - offsety - 1; y++)
+
+    // окрестность
+    int p = 3;
+    auto offestp = p / 2;
+    for( size_t y = 1 + offsety + offestp; y < _myImage.getHeight() - offsety - offestp - 1; y++)
     {
-        for( size_t x = 1 + offsetx; x < _myImage.getWidth() - offsetx  - 1; x++)
+        for( size_t x = 1 + offsetx + offestp; x < _myImage.getWidth() - offsetx - offestp  - 1; x++)
         {
             vector<float> ErrorShift;
             ErrorShift.resize( g_shiftWindow.size() );
@@ -278,6 +277,36 @@ vector<pair<int,int>> CImageHandler::moravec( CImage& _myImage, float _T, size_t
                 ErrorShift[sh] = sum;
             }
             auto minErrorShift = std::min_element( ErrorShift.begin(),ErrorShift.end() );
+
+            vector<float> ErrorShiftP;
+            ErrorShiftP.resize( g_shiftWindow.size() );
+            // требование локального максимума
+            for( int py = 0 ; py < p; py++ )
+            {
+                for(int px = 0; px < p; px++ )
+                {
+                    for( size_t sh = 0;sh < g_shiftWindow.size(); sh++ )
+                    {
+                        float sum = 0;
+                        for( size_t j = 0; j < _windowHeight; j++ )
+                        {
+                            for( size_t i = 0; i < _windowWidth; i++ )
+                            {
+                                float dif = _myImage.getPixel( y + py - offestp + j - offsety,x + px - offestp + i - offsetx ) - _myImage.getPixel( y + py - offestp + j - offsety + g_shiftWindow[sh].first, x + px - offestp + i - offsetx + g_shiftWindow[sh].second );
+                                dif = dif * dif;
+                                sum += dif;
+                            }
+                        }
+                        ErrorShiftP[sh] = sum;
+                    }
+                }
+            }
+            auto minErrorShiftP = std::min_element( ErrorShiftP.begin(),ErrorShiftP.end() );
+
+            if( *minErrorShift < *minErrorShiftP )
+                continue;
+            // требование локального максимума
+
             if( *minErrorShift > _T )
                 point.push_back( make_pair( y,x ) );
         }

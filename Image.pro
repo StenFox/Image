@@ -29,14 +29,16 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     CImage.cpp \
-    CimageHandler.cpp
+    CimageHandler.cpp \
+    CPyramid.cpp
 
 HEADERS += \
         mainwindow.h \
     CImage.h \
     CImageKernels.h \
     CMatrixV.h \
-    CImageHandler.h
+    CImageHandler.h \
+    CPyramid.h
 
 FORMS += \
         mainwindow.ui

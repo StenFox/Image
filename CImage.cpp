@@ -2,6 +2,11 @@
 
 using namespace  std;
 
+CImage::CImage()
+{
+
+}
+
 // Конструктор
 CImage::CImage( int _height, int _width )
 {

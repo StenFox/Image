@@ -9,6 +9,8 @@ class CImage
 {
 public:
     // Конструктор
+    CImage();
+
     CImage( int _height, int _width );
 
     CImage( int _height, int _width, std::vector<float>& _img );
