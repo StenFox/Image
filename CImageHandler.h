@@ -74,11 +74,11 @@ private:
     void downSpace( CImage& _myImage );
 
     // Магнитуда или вычисление Величины градиента
-    void magnitude( CImage& _input, const std::vector<float>& _gx, const std::vector<float>& _gy );
+    void magnitude(  CImage& _input, const CImage& _gx, const CImage& _gy );
 
     // Свёртка, на вход подаём ядро cвёртки и метод для обработки краевых эффектов
     template<typename T>
-    std::vector<float> convolution(const CMatrixV<T>& _kernel, CImage& _myImage, mtProcessingEdgeEffects _method )
+    CImage convolution( const CMatrixV<T>& _kernel, const CImage& _myImage, mtProcessingEdgeEffects _method )
     {
         int kw = _kernel.getRows();
         int kh = _kernel.getColumns();
@@ -89,8 +89,7 @@ private:
         auto heightImg = _myImage.getHeight();
         auto widthImg = _myImage.getWidth();
 
-        std::vector<float> outConvolution;
-        outConvolution.resize( heightImg * widthImg, 0 );
+        CImage outImage(heightImg,widthImg);
         for (auto y = 0; y < heightImg; y++)
         {
             for (auto x = 0; x < widthImg; x++)
@@ -151,11 +150,11 @@ private:
                         sum += _kernel.getItem( j, i ) * _myImage.getPixel( y + j - offsety , x + i - offsetx );
                     }
                 }
-                outConvolution[ y * widthImg + x ] = sum;
+                outImage.setPixel( y, x, sum );
             }
         }
 
-        return outConvolution;
+        return outImage;
     }
 
     // Вычисление Гауссиана

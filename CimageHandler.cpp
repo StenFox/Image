@@ -74,13 +74,13 @@ void CImageHandler::downSpace( CImage& _myImage )
 }
 
 //-----------------------------------------------------------------------------------
-void CImageHandler::magnitude( CImage& _input, const vector<float>& _gx, const vector<float>& _gy )
+void CImageHandler::magnitude( CImage& _input, const CImage& _gx, const CImage& _gy )
 {
     for ( auto y = 0; y < _input.getHeight(); y++ )
     {
         for ( auto x = 0; x < _input.getWidth(); x++ )
         {
-            _input.setPixel( y, x, hypot ( _gx[ y * _input.getWidth() + x ], _gy[ y * _input.getWidth() + x ] ) );
+            _input.setPixel( y, x, hypot ( _gx.getPixel( y,x ), _gy.getPixel( y,x ) ) );
         }
     }
 }
@@ -141,9 +141,8 @@ void CImageHandler::convolutionForGauss( float _sigma, CImage& myImage ,mtProces
     const CMatrixV<float> Gaus1H( temp.size(),1,temp );
     const CMatrixV<float> Gaus1W( 1,temp.size(),temp );
     auto g1 = convolution( Gaus1W, myImage, _method );
-    applyConvolution( g1, myImage );
-    auto g2 = convolution( Gaus1H, myImage, _method );
-    applyConvolution( g2, myImage );
+    auto g2 = convolution( Gaus1H, g1, _method );
+    myImage = std::move( g2 );
 }
 
 //-----------------------------------------------------------------------------------
@@ -317,10 +316,8 @@ vector<pair<int,int>> CImageHandler::moravec( CImage& _myImage, float _T, size_t
 //-----------------------------------------------------------------------------------
 vector<pair<int,int>> CImageHandler::harris( CImage& _myImage, float _T , float _k, bool _useNonMaximum, int _colPoints )
 {
-    CImage temp = _myImage;
-    sobel( mtBlackEdge,temp );
-    vector<float> dx = convolution( g_sobelX, _myImage, mtBlackEdge );
-    vector<float> dy = convolution( g_sobelY, _myImage, mtBlackEdge );
+    auto dx = convolution( g_sobelX, _myImage, mtBlackEdge );
+    auto dy = convolution( g_sobelY, _myImage, mtBlackEdge );
 
     vector<pair<int,int>> point;
 
@@ -333,9 +330,11 @@ vector<pair<int,int>> CImageHandler::harris( CImage& _myImage, float _T , float 
     {
         for( auto i = 0; i < _myImage.getWidth();i++)
         {
-            A = dx[ j * _myImage.getWidth() + i ] * dx[ j * _myImage.getWidth() + i ];
-            B = temp.getPixel(j,i);
-            C = dy[ j * _myImage.getWidth() + i ] * dy[ j * _myImage.getWidth() + i ];
+            auto dxv = dx.getPixel( j,i );
+            auto dyv = dy.getPixel( j,i );
+            A = dxv * dxv;
+            B = dxv * dyv ;
+            C = dyv * dyv;
             M = ( A * C - B * B ) - _k *( ( A + C ) * ( A + C ) );
             if( M > _T )
             {
