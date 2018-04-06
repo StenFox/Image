@@ -1,6 +1,5 @@
 #include "CImageHandler.h"
 #include "CImageKernels.h"
-#include "CPyramid.h"
 #include <map>
 
 using namespace  std;
@@ -181,29 +180,34 @@ float pifagor(float sigmaNext,float sigmaPrev)
 }
 
 //-----------------------------------------------------------------------------------
-void CImageHandler::gaussPyramid( CImage& _img, int _octaves,int scales, float sigmaZero )
+CPyramid CImageHandler::gaussPyramid( const CImage& _img, int _octaves,int _scales, float sigmaZero )
 {
     float sigmaPrev;
     float sigmaNext;
     float deltaSigma;
     sigmaPrev = 0.5;
-    float k = pow( 2, (float)1 / scales);
+    float k = pow( 2, (float)1 / _scales);
     deltaSigma = pifagor( sigmaPrev,sigmaZero );
-    gaussianBlur( deltaSigma,_img, mtBlackEdge );
-    for( int i = 0; i < _octaves; i++ )
+    CImage temp = _img;
+    gaussianBlur( deltaSigma, temp , mtBlackEdge );
+
+    CPyramid pyramid( _octaves,sigmaZero, _scales );
+    pyramid.setImageInOctaves( temp,0,deltaSigma );
+    for( int i = 1; i < _octaves; i++ )
     {
         sigmaPrev = sigmaZero;
         sigmaNext = sigmaPrev * k;
         deltaSigma = pifagor( sigmaNext,sigmaPrev );
-        //while( sigmaNext < 2 * sigmaZero )
-        for( int j = 0; j < scales; j++ )
+        for( int j = 0; j < _scales; j++ )
         {
-             gaussianBlur( deltaSigma, _img, mtBlackEdge );
+             gaussianBlur( deltaSigma, temp, mtBlackEdge );
              sigmaPrev = sigmaNext;
              sigmaNext = sigmaPrev * k;
         }
-        downSpace( _img );
+        downSpace( temp );
+        pyramid.setImageInOctaves( temp,i,deltaSigma );
     }
+    return pyramid;
 }
 
 //-----------------------------------------------------------------------------------
@@ -246,15 +250,15 @@ QImage CImageHandler::showInterestPointHarris( CImage& _myImage, float T, float 
 
 //-----------------------------------------------------------------------------------
 // T пороговое значиние
-vector<pair<int,int>> CImageHandler::moravec( CImage& _myImage, float _T, size_t _windowHeight, size_t _windowWidth  )
+vector<pair<int,int>> CImageHandler::moravec(const CImage& _myImage, float _T, size_t _windowHeight, size_t _windowWidth  )
 {
     auto offsetx = _windowWidth / 2;
     auto offsety = _windowHeight / 2;
     vector<pair<int,int>> point;
 
-    // окрестность
     int p = 3;
     auto offestp = p / 2;
+
     for( size_t y = 1 + offsety + offestp; y < _myImage.getHeight() - offsety - offestp - 1; y++)
     {
         for( size_t x = 1 + offsetx + offestp; x < _myImage.getWidth() - offsetx - offestp  - 1; x++)
@@ -277,44 +281,60 @@ vector<pair<int,int>> CImageHandler::moravec( CImage& _myImage, float _T, size_t
             }
             auto minErrorShift = std::min_element( ErrorShift.begin(),ErrorShift.end() );
 
-            vector<float> ErrorShiftP;
-            ErrorShiftP.resize( g_shiftWindow.size() );
-            // требование локального максимума
-            for( int py = 0 ; py < p; py++ )
-            {
-                for(int px = 0; px < p; px++ )
-                {
-                    for( size_t sh = 0;sh < g_shiftWindow.size(); sh++ )
-                    {
-                        float sum = 0;
-                        for( size_t j = 0; j < _windowHeight; j++ )
-                        {
-                            for( size_t i = 0; i < _windowWidth; i++ )
-                            {
-                                float dif = _myImage.getPixel( y + py - offestp + j - offsety,x + px - offestp + i - offsetx ) - _myImage.getPixel( y + py - offestp + j - offsety + g_shiftWindow[sh].first, x + px - offestp + i - offsetx + g_shiftWindow[sh].second );
-                                dif = dif * dif;
-                                sum += dif;
-                            }
-                        }
-                        ErrorShiftP[sh] = sum;
-                    }
-                }
-            }
-            auto minErrorShiftP = std::min_element( ErrorShiftP.begin(),ErrorShiftP.end() );
+            if( filtrate( x, y, *minErrorShift, _T, false, _myImage, _windowHeight, _windowWidth ) )
+                point.push_back(make_pair(y,x));
 
-            if( *minErrorShift < *minErrorShiftP )
-                continue;
-            // требование локального максимума
-
-            if( *minErrorShift > _T )
-                point.push_back( make_pair( y,x ) );
         }
     }
     return point;
 }
 
+bool CImageHandler::filtrate(int _x,int _y,float _minError,float _T,bool _useNonMaximumSupresion, const CImage& _myImage, int _windowHeight, int _windowWidth )
+{
+    auto offsetx = _windowWidth / 2;
+    auto offsety = _windowHeight / 2;
+    // окрестность
+    int p = 3;
+    auto offestp = p / 2;
+
+     // требование порогового значение
+    if( _minError > _T )
+    {
+        vector<float> ErrorShiftP;
+        ErrorShiftP.resize( g_shiftWindow.size() );
+
+        // требование локального максимума
+        for( int py = 0 ; py < p; py++ )
+        {
+            for(int px = 0; px < p; px++ )
+            {
+                for( size_t sh = 0;sh < g_shiftWindow.size(); sh++ )
+                {
+                    float sum = 0;
+                    for( size_t j = 0; j < _windowHeight; j++ )
+                    {
+                        for( size_t i = 0; i < _windowWidth; i++ )
+                        {
+                            float dif = _myImage.getPixel( _y + py - offestp + j - offsety, _x + px - offestp + i - offsetx ) - _myImage.getPixel( _y + py - offestp + j - offsety + g_shiftWindow[sh].first, _x + px - offestp + i - offsetx + g_shiftWindow[sh].second );
+                            dif = dif * dif;
+                            sum += dif;
+                        }
+                    }
+                    ErrorShiftP[sh] = sum;
+                }
+            }
+        }
+        auto minErrorShiftP = std::min_element( ErrorShiftP.begin(),ErrorShiftP.end() );
+
+        if( _minError > *minErrorShiftP )
+            return true;
+    }
+    return false;
+
+}
+
 //-----------------------------------------------------------------------------------
-vector<pair<int,int>> CImageHandler::harris( CImage& _myImage, float _T , float _k, bool _useNonMaximum, int _colPoints )
+vector<pair<int,int>> CImageHandler::harris( const CImage& _myImage, float _T , float _k, bool _useNonMaximum, int _colPoints )
 {
     auto dx = convolution( g_sobelX, _myImage, mtBlackEdge );
     auto dy = convolution( g_sobelY, _myImage, mtBlackEdge );
@@ -325,7 +345,7 @@ vector<pair<int,int>> CImageHandler::harris( CImage& _myImage, float _T , float 
     value.resize( _myImage.getHeight() * _myImage.getWidth() );
 
     float A,B,C,M;
-
+    size_t p=3;
     for( auto j = 0; j < _myImage.getHeight(); j++)
     {
         for( auto i = 0; i < _myImage.getWidth();i++)
@@ -344,9 +364,9 @@ vector<pair<int,int>> CImageHandler::harris( CImage& _myImage, float _T , float 
         }
     }
 
-    if( _useNonMaximum )
-        return nonMaximumPoints( _myImage, value, _colPoints );
-    else
+    //if( _useNonMaximum )
+        //return nonMaximumPoints( _myImage, value, _colPoints );
+    //else
         return point;
 }
 

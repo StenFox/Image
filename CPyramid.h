@@ -6,10 +6,14 @@
 class CPyramid
 {
 public:
-    CPyramid( int _octaves );
-    void setImageInOctaves( CImage& _myImage, int octava )
+
+    CPyramid( int _octaves, float _sigmaZero, int _scales );
+
+    void setImageInOctaves( CImage& _myImage, int _octava, float _sigma )
     {
-        m_pyramidImage[octava] = _myImage;
+        m_pyramidImage[_octava] = _myImage;
+        m_sigmas[_octava] = _sigma;
+        m_evectifSigma *= _sigma;
     }
 
     CImage getImageInOctaves( int octava )
@@ -24,6 +28,9 @@ public:
 
 private:
     int m_octaves;
+    int m_sclaes;
+    float m_evectifSigma;
+    std::vector<float> m_sigmas;
     std::vector<CImage> m_pyramidImage;
 };
 

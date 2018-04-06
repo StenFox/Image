@@ -1,6 +1,7 @@
 #ifndef CIMAGEHANDLER_H
 #define CIMAGEHANDLER_H
 #include "CImage.h"
+#include "CPyramid.h"
 #include <QDebug>
 
 enum mtProcessingEdgeEffects
@@ -22,7 +23,7 @@ public:
     CImageHandler();
 
     // Пирамида Гаусса
-    void gaussPyramid( CImage& _myImage, int _octaves,int sclaes, float sigmaZero );
+    CPyramid gaussPyramid( const CImage& _myImage, int _octaves,int sclaes, float sigmaZero );
 
     // Оператор Собеля
     void sobel( mtProcessingEdgeEffects _method, CImage& _image );
@@ -184,11 +185,13 @@ private:
     // Отметить на ихображении точки интереса
     QImage setRedPointsOfInterest( CImage& _myImage, std::vector<std::pair<int,int>> _interestPoints );
 
+    bool filtrate( int _x,int _y,float _minError,float _T,bool _useNonMaximumSupresion, const CImage& _myImage, int _windowHeight, int _windowWidth );
+
     // Детектор
-    std::vector< std::pair<int,int> > moravec( CImage& _myImage, float _T, size_t _windowHeight, size_t _windowWidth );
+    std::vector< std::pair<int,int> > moravec( const CImage& _myImage, float _T, size_t _windowHeight, size_t _windowWidth );
 
     // Детектор Харриса
-    std::vector< std::pair<int,int> > harris( CImage& _myImage, float _T , float _k, bool _useNonMaximum, int _colPoint );
+    std::vector< std::pair<int,int> > harris( const CImage& _myImage, float _T , float _k, bool _useNonMaximum, int _colPoint );
 
     // Подавление не максимальных элементов
     std::vector< std::pair<int,int> > nonMaximumPoints( CImage& _myImage, std::vector<float>& _value, int _colPoints );
