@@ -3,6 +3,7 @@
 #include "CImage.h"
 #include "CPyramid.h"
 #include <QDebug>
+#include <QPoint>
 
 enum mtProcessingEdgeEffects
 {
@@ -183,18 +184,25 @@ private:
     std::vector<float> resizeBilinear( const CImage& _myImage, int _widthOld, int _heightOld, int _widthNew, int _heightNew );
 
     // Отметить на ихображении точки интереса
-    QImage setRedPointsOfInterest( CImage& _myImage, std::vector<std::pair<int,int>> _interestPoints );
+    QImage setRedPointsOfInterest( CImage& _myImage, std::vector<QPoint> _interestPoints );
 
-    bool filtrate( int _x,int _y,float _minError,float _T,bool _useNonMaximumSupresion, const CImage& _myImage, int _windowHeight, int _windowWidth );
+    float valueErrorShift( int x, int y, int _sh, size_t _windowHeight, size_t _windowWidth, const CImage& _myImage );
 
+    bool filtrate( int _x, int _y, float _valueOperator, float _T, const CImage& _myImage,int _ambit, int _windowHeight, int _windowWidth );
     // Детектор
-    std::vector< std::pair<int,int> > moravec( const CImage& _myImage, float _T, size_t _windowHeight, size_t _windowWidth );
+    std::vector<QPoint> moravec( const CImage& _myImage, float _T, size_t _windowHeight, size_t _windowWidth );
 
     // Детектор Харриса
-    std::vector< std::pair<int,int> > harris( const CImage& _myImage, float _T , float _k, bool _useNonMaximum, int _colPoint );
+    std::vector<QPoint> harris( const CImage& _myImage, float _T , float _k, bool _useNonMaximum, int _colPoint );
 
     // Подавление не максимальных элементов
-    std::vector< std::pair<int,int> > nonMaximumPoints( CImage& _myImage, std::vector<float>& _value, int _colPoints );
+    std::vector<QPoint> nonMaximumPoints( std::vector<float>& _value, std::vector<QPoint> _points, int _colPoints );
+
+    float distanceBetweenPoints( QPoint _p1, QPoint _p2 );
+
+    float eigenvaluesHarris( int _x, int _y, const CImage& _dx, const CImage& _dy, float _k, int _ambit  );
+
+    float minErrorShift( int _x, int _y, size_t _windowHeight, size_t _windowWidth, const CImage& _myImage );
 };
 
 #endif // CIMAGEHANDLER_H
