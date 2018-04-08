@@ -2,8 +2,10 @@
 #define CIMAGEHANDLER_H
 #include "CImage.h"
 #include "CPyramid.h"
+#include "CDescriptor.h"
 #include <QDebug>
 #include <QPoint>
+#include <math.h>
 
 enum mtProcessingEdgeEffects
 {
@@ -188,7 +190,7 @@ private:
 
     float valueErrorShift( int x, int y, int _sh, size_t _windowHeight, size_t _windowWidth, const CImage& _myImage );
 
-    bool filtrate( int _x, int _y, float _valueOperator, float _T, const CImage& _myImage,int _ambit, int _windowHeight, int _windowWidth );
+    bool filtrate( int _x, int _y, float _valueOperator, float _T, const CImage& _myImage,int _ambit, int _windowHeight, int _windowWidth, const CImage& _dx, const CImage& _dy, float _k  );
     // Детектор
     std::vector<QPoint> moravec( const CImage& _myImage, float _T, size_t _windowHeight, size_t _windowWidth );
 
@@ -203,6 +205,8 @@ private:
     float eigenvaluesHarris( int _x, int _y, const CImage& _dx, const CImage& _dy, float _k, int _ambit  );
 
     float minErrorShift( int _x, int _y, size_t _windowHeight, size_t _windowWidth, const CImage& _myImage );
+
+    void descriptor(const CImage& _myImage, int _colHistogram, int _colPin, int _ambit, std::vector<QPoint> _interestPoint );
 };
 
 #endif // CIMAGEHANDLER_H

@@ -1,6 +1,5 @@
 #include "CImageHandler.h"
 #include "CImageKernels.h"
-#include <map>
 
 using namespace  std;
 
@@ -238,6 +237,7 @@ QImage CImageHandler::setRedPointsOfInterest( CImage& _myImage, vector<QPoint> _
 //-----------------------------------------------------------------------------------
 QImage CImageHandler::showInterestPointMoravec( CImage& _myImage, float T, size_t _windowHeight, size_t _windowWidth )
 {
+    descriptor(_myImage,4,8,16, moravec( _myImage,T, _windowHeight, _windowWidth ));
     return setRedPointsOfInterest( _myImage, moravec( _myImage,T, _windowHeight, _windowWidth ) );
 }
 
@@ -262,7 +262,7 @@ vector<QPoint> CImageHandler::moravec(const CImage& _myImage, float _T, size_t _
         for( size_t x = 1 + offsetx + offestp; x < _myImage.getWidth() - offsetx - offestp  - 1; x++)
         {
             float minError = minErrorShift( x, y, _windowHeight, _windowWidth, _myImage );
-            if( filtrate( x, y, minError, _T, _myImage, p, _windowHeight, _windowWidth ) )
+            if( filtrate( x, y, minError, _T, _myImage, p, _windowHeight, _windowWidth, _myImage, _myImage, 0 ) )
                 point.push_back( QPoint( x, y ) );
 
         }
@@ -304,7 +304,7 @@ float CImageHandler::valueErrorShift( int _x, int _y, int _sh, size_t _windowHei
 }
 
 //-----------------------------------------------------------------------------------
-bool CImageHandler::filtrate( int _x, int _y, float _valueOperator, float _T, const CImage& _myImage,int _ambit, int _windowHeight, int _windowWidth )
+bool CImageHandler::filtrate( int _x, int _y, float _valueOperator, float _T, const CImage& _myImage,int _ambit, int _windowHeight, int _windowWidth, const CImage& _dx, const CImage& _dy, float _k  )
 {
     // требование порогового значение
     if( _valueOperator < _T )
@@ -318,13 +318,13 @@ bool CImageHandler::filtrate( int _x, int _y, float _valueOperator, float _T, co
         for( int px = 0; px < _ambit; px++ )
         {
             float valueOperatorInAmbit = 0;
-            if(true)
+            if( _windowHeight != 0 && _windowWidth != 0 )
             {
                 valueOperatorInAmbit = minErrorShift( _x + px - offestAmbit, _y + py - offestAmbit, _windowHeight, _windowWidth, _myImage );
             }
-            else
+            else if( _k != 0 )
             {
-
+                valueOperatorInAmbit = eigenvaluesHarris( _x + px - offestAmbit, _y + py - offestAmbit, _dx, _dy, _k, _ambit );
             }
             if( _valueOperator < valueOperatorInAmbit )
                 return false;
@@ -343,16 +343,17 @@ vector<QPoint> CImageHandler::harris( const CImage& _myImage, float _T , float _
 
     vector<float> value;
     size_t p = 3;
+    auto offsetp = p/2;
 
-    for( int j = 0; j < _myImage.getHeight(); j++)
+    for( int y = 1 + offsetp ; y < _myImage.getHeight() - 1 - offsetp; y++ )
     {
-        for( int i = 0; i < _myImage.getWidth();i++)
+        for( int x = 1 + offsetp; x < _myImage.getWidth() - 1 - offsetp; x++ )
         {
-            float M = eigenvaluesHarris( i, j, dx, dy, _k, p );
-            if( filtrate( i, j, M, _T, _myImage, p , 0 , 0 ) )
+            float M = eigenvaluesHarris( x, y, dx, dy, _k, p );
+            if( filtrate( x, y, M, _T, _myImage, p , 0 , 0, dx, dy, _k ) )
             {
                 value.push_back( M );
-                point.push_back( QPoint( i,j ) );
+                point.push_back( QPoint( x,y ) );
             }
         }
     }
@@ -373,11 +374,13 @@ float CImageHandler::eigenvaluesHarris( int _x, int _y, const CImage& _dx, const
     {
         for( int px = 0; px < _ambit; px++ )
         {
-           auto dxv = _dx.getPixel( _y + py - offestp,_x + px - offestp );
-           auto dyv = _dy.getPixel( _y + py - offestp,_x + px - offestp );
+           float dxv = _dx.getPixel( _y + py - offestp,_x + px - offestp );
+           float dyv = _dy.getPixel( _y + py - offestp,_x + px - offestp );
            A += dxv * dxv;
            B += dxv * dyv ;
            C += dyv * dyv;
+           if( C != 0 )
+               int cf = 0;
         }
     }
     return ( A * C - B * B ) - _k *( ( A + C ) * ( A + C ) );
@@ -415,3 +418,57 @@ vector<QPoint> CImageHandler::nonMaximumPoints( vector<float>& _value, vector<QP
     return _points;
 }
 
+
+void CImageHandler::descriptor( const CImage& _myImage, int _colHistogram, int _colPin, int _ambit, vector<QPoint> _interestPoint )
+{
+    vector<CDescriptor> descriptors;
+    descriptors.resize( _interestPoint.size(), CDescriptor( 8, 4 ) );
+
+    auto dx = convolution( g_sobelX, _myImage, mtBlackEdge );
+    auto dy = convolution( g_sobelY, _myImage, mtBlackEdge );
+
+    CImage valueGradient( _myImage.getHeight(),_myImage.getWidth() );
+    magnitude( valueGradient, dx, dy );
+
+    CImage directionGradient( _myImage.getHeight(),_myImage.getWidth() );
+
+    for( size_t y = 0; y < directionGradient.getHeight(); y++ )
+    {
+        for( size_t x = 0; x < directionGradient.getWidth(); x++ )
+        {
+            double phi = ( atan2( dx.getPixel( y, x ), dy.getPixel( y, x ) ) * 180 / M_PI ) + 180;
+            directionGradient.setPixel( y, x, phi );
+        }
+    }
+
+
+    for( size_t  k = 0; k < _interestPoint.size(); k++ )
+    {
+        descriptors[k].setInterestPoint( _interestPoint[k] );
+        for( int y = -_ambit / 2; y < _ambit / 2; y++ )
+        {
+            for( int x = -_ambit / 2; x < _ambit / 2; x++ )
+            {
+                int yP = _interestPoint[k].y() + y;
+                int xP = _interestPoint[k].x() + x;
+                if( x < 0 && y < 0 )
+                {
+                    descriptors[k].addValueInHistogramm( valueGradient.getPixel( yP,xP ), directionGradient.getPixel( yP,xP ), 2 );
+                }
+                if( x < 0 && y >= 0 )
+                {
+                    descriptors[k].addValueInHistogramm( valueGradient.getPixel( yP,xP ), directionGradient.getPixel( yP,xP ), 0 );
+                }
+                if( x >= 0 && y < 0 )
+                {
+                    descriptors[k].addValueInHistogramm( valueGradient.getPixel( yP,xP ), directionGradient.getPixel( yP,xP ), 3 );
+                }
+                if( x >= 0 && y >= 0 )
+                {
+                    descriptors[k].addValueInHistogramm( valueGradient.getPixel(  yP,xP ), directionGradient.getPixel( yP,xP ), 1 );
+                }
+            }
+        }
+    }
+    int b =0;
+}

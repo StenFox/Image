@@ -27,13 +27,10 @@ void MainWindow::on_LoadImageButton_clicked()
     img.load(fileName);
     myImage = new CImage( img.height(), img.width() );
     myImageHandler->grayScale( img ,*myImage );
-    //ui->graphicsView->scene()->clear();
     QGraphicsScene *scene = new QGraphicsScene();
     QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage(myImage->getImage()));
     scene->addItem(item);
     ui->graphicsView->setScene(scene);
-    //ui->label->setPixmap( QPixmap::fromImage( myImage->getImage() ) );
-    //ui->label_2->setPixmap( QPixmap::fromImage( img ) );
 }
 
 void MainWindow::on_GaussBlurButton_clicked()
@@ -85,7 +82,7 @@ void MainWindow::on_HarrisonButton_clicked()
 {
     ui->graphicsView->scene()->clear();
     QGraphicsScene *scene = new QGraphicsScene();
-    QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage( myImageHandler->showInterestPointHarris( *myImage,45000,0.06,true,400 ) ) );
+    QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage( myImageHandler->showInterestPointHarris( *myImage,44565000,0.06,true,400 ) ) );
     scene->addItem( item );
     ui->graphicsView->setScene( scene );
 }

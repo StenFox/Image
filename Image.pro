@@ -30,7 +30,9 @@ SOURCES += \
         mainwindow.cpp \
     CImage.cpp \
     CimageHandler.cpp \
-    CPyramid.cpp
+    CPyramid.cpp \
+    CDescriptor.cpp \
+    CHistogram.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -38,7 +40,9 @@ HEADERS += \
     CImageKernels.h \
     CMatrixV.h \
     CImageHandler.h \
-    CPyramid.h
+    CPyramid.h \
+    CDescriptor.h \
+    CHistogram.h
 
 FORMS += \
         mainwindow.ui

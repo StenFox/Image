@@ -40,45 +40,6 @@
      <string>TextLabel</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="GaussBlurButton">
-    <property name="geometry">
-     <rect>
-      <x>830</x>
-      <y>110</y>
-      <width>161</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Фильтр Гаусса</string>
-    </property>
-   </widget>
-   <widget class="QDoubleSpinBox" name="doubleSpinBox">
-    <property name="geometry">
-     <rect>
-      <x>880</x>
-      <y>80</y>
-      <width>111</width>
-      <height>22</height>
-     </rect>
-    </property>
-    <property name="singleStep">
-     <double>0.100000000000000</double>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="SobelButton">
-    <property name="geometry">
-     <rect>
-      <x>830</x>
-      <y>160</y>
-      <width>161</width>
-      <height>51</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Собель</string>
-    </property>
-   </widget>
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
@@ -96,49 +57,10 @@
     <property name="geometry">
      <rect>
       <x>830</x>
-      <y>230</y>
+      <y>50</y>
       <width>161</width>
       <height>22</height>
      </rect>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="ReloadImageButton">
-    <property name="geometry">
-     <rect>
-      <x>830</x>
-      <y>42</y>
-      <width>161</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Перезагрузка изображения</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_Sigma">
-    <property name="geometry">
-     <rect>
-      <x>840</x>
-      <y>80</y>
-      <width>31</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Sigma</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pushButton">
-    <property name="geometry">
-     <rect>
-      <x>830</x>
-      <y>270</y>
-      <width>161</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>PushButton</string>
     </property>
    </widget>
    <widget class="QGraphicsView" name="graphicsView">
@@ -151,31 +73,183 @@
      </rect>
     </property>
    </widget>
-   <widget class="QPushButton" name="MoravecButton">
+   <widget class="QTabWidget" name="tabWidget">
     <property name="geometry">
      <rect>
       <x>830</x>
-      <y>320</y>
+      <y>80</y>
       <width>161</width>
-      <height>23</height>
+      <height>301</height>
      </rect>
     </property>
-    <property name="text">
-     <string>Моравик</string>
+    <property name="currentIndex">
+     <number>1</number>
     </property>
-   </widget>
-   <widget class="QPushButton" name="HarrisonButton">
-    <property name="geometry">
-     <rect>
-      <x>830</x>
-      <y>370</y>
-      <width>161</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Харисон</string>
-    </property>
+    <widget class="QWidget" name="lab1">
+     <attribute name="title">
+      <string>1 Л</string>
+     </attribute>
+     <widget class="QPushButton" name="SobelButton">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>10</y>
+        <width>151</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Собель</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="lab2">
+     <attribute name="title">
+      <string>2 Л</string>
+     </attribute>
+     <widget class="QPushButton" name="GaussBlurButton">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>131</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Фильтр Гаусса</string>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="doubleSpinBox">
+      <property name="geometry">
+       <rect>
+        <x>50</x>
+        <y>50</y>
+        <width>91</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="singleStep">
+       <double>0.100000000000000</double>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_Sigma">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>50</y>
+        <width>31</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Sigma</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>90</y>
+        <width>131</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Пирамида Гаусса</string>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="spinBox">
+      <property name="geometry">
+       <rect>
+        <x>100</x>
+        <y>141</y>
+        <width>41</width>
+        <height>21</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="spinBox_2">
+      <property name="geometry">
+       <rect>
+        <x>100</x>
+        <y>180</y>
+        <width>42</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_3">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>142</y>
+        <width>71</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Кол-во октав</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_4">
+      <property name="geometry">
+       <rect>
+        <x>4</x>
+        <y>182</y>
+        <width>101</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Кол-во масштабов</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="showOctave">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>210</y>
+        <width>131</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Показать октаву</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="lab3">
+     <attribute name="title">
+      <string>3 Л</string>
+     </attribute>
+     <widget class="QPushButton" name="MoravecButton">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>10</y>
+        <width>161</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Моравик</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="HarrisonButton">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>50</y>
+        <width>161</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Харисон</string>
+      </property>
+     </widget>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
