@@ -415,7 +415,7 @@ vector<QPoint> CImageHandler::nonMaximumPoints( vector<float>& _value, vector<QP
     return _points;
 }
 
-
+//-----------------------------------------------------------------------------------
 void CImageHandler::descriptor( CImage& _myImage, int _colHistogram, int _colPin, int _ambit, vector<QPoint> _interestPoint )
 {
     vector<CDescriptor> descriptors;
@@ -461,6 +461,7 @@ void CImageHandler::descriptor( CImage& _myImage, int _colHistogram, int _colPin
     }
 }
 
+//-----------------------------------------------------------------------------------
 void CImageHandler::fourHistogramms( int x,int y, CDescriptor& _des, float _vG, float _dG )
 {
     int gist = 0;

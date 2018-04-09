@@ -19,6 +19,11 @@ enum mtProcessingEdgeEffects
     mtThor,
 };
 
+enum mtHistogramm
+{
+    mtFourHistgrammsS,
+};
+
 class CImageHandler
 {
 public:
@@ -188,10 +193,13 @@ private:
     // Отметить на ихображении точки интереса
     QImage setRedPointsOfInterest( CImage& _myImage, std::vector<QPoint> _interestPoints );
 
+    // Вычисляем значение ошибки при сдвиге
     float valueErrorShift( int x, int y, int _sh, size_t _windowHeight, size_t _windowWidth, const CImage& _myImage );
 
+    // Фильтруем точки интереса
     bool filtrate( int _x, int _y, float _valueOperator, float _T, const CImage& _myImage,int _ambit, int _windowHeight, int _windowWidth, const CImage& _dx, const CImage& _dy, float _k  );
-    // Детектор
+
+    // Детектор Моравика
     std::vector<QPoint> moravec( const CImage& _myImage, float _T, size_t _windowHeight, size_t _windowWidth );
 
     // Детектор Харриса
@@ -200,14 +208,19 @@ private:
     // Подавление не максимальных элементов
     std::vector<QPoint> nonMaximumPoints( std::vector<float>& _value, std::vector<QPoint> _points, int _colPoints );
 
+    // Растояние между 2 точка
     float distanceBetweenPoints( QPoint _p1, QPoint _p2 );
 
+    // Собстевенные числа для Харрисона
     float eigenvaluesHarris( int _x, int _y, const CImage& _dx, const CImage& _dy, float _k, int _ambit  );
 
+    // Минимальная ошибка при сдвигах в 8 направлениях
     float minErrorShift( int _x, int _y, size_t _windowHeight, size_t _windowWidth, const CImage& _myImage );
 
+    // Вычисляем дескрипторы
     void descriptor( CImage& _myImage, int _colHistogram, int _colPin, int _ambit, std::vector<QPoint> _interestPoint );
 
+    // Распределяем значения между 4 гистораммами
     void fourHistogramms( int x,int y, CDescriptor& _des, float _vG, float _dG );
 };
 
