@@ -114,7 +114,7 @@ private:
                                 continue;
                             if( _method == mtCopyEdge )
                             {
-                                sum += _kernel.getItem( j, i ) * _myImage.getPixel( y + j, x + i );
+                                sum += _kernel.getItem( j, i ) * _myImage.getItem( y + j, x + i );
                                 continue;
                             }
                             if( _method == mtThor )
@@ -123,14 +123,14 @@ private:
                                 {
                                     if(x + i < offsetx)
                                     {
-                                        sum += _kernel.getItem( j, i ) * _myImage.getPixel( heightImg, widthImg );
+                                        sum += _kernel.getItem( j, i ) * _myImage.getItem( heightImg, widthImg );
                                     }
                                     else if( x + i >= widthImg )
                                     {
-                                        sum += _kernel.getItem( j, i ) * _myImage.getPixel( heightImg - 1 , widthImg );
+                                        sum += _kernel.getItem( j, i ) * _myImage.getItem( heightImg - 1 , widthImg );
                                     }
                                     else
-                                        sum += _kernel.getItem( j, i ) * _myImage.getPixel( y + j - offsety, x + i - offsetx );
+                                        sum += _kernel.getItem( j, i ) * _myImage.getItem( y + j - offsety, x + i - offsetx );
                                     continue;
                                 }
 
@@ -138,23 +138,23 @@ private:
                                 {
                                     if(x + i < offsetx)
                                     {
-                                        sum += _kernel.getItem( j, i ) * _myImage.getPixel( 0, widthImg ) ;
+                                        sum += _kernel.getItem( j, i ) * _myImage.getItem( 0, widthImg ) ;
                                     }
                                     else if( x + i >= widthImg )
                                     {
-                                        sum += _kernel.getItem( j, i ) * _myImage.getPixel( 0, 0 );
+                                        sum += _kernel.getItem( j, i ) * _myImage.getItem( 0, 0 );
                                     }
                                     else
-                                        sum += _kernel.getItem( j, i ) * _myImage.getPixel( y + j - offsety, x + i - offsetx );
+                                        sum += _kernel.getItem( j, i ) * _myImage.getItem( y + j - offsety, x + i - offsetx );
                                     continue;
                                 }
                             }
                         }
 
-                        sum += _kernel.getItem( j, i ) * _myImage.getPixel( y + j - offsety , x + i - offsetx );
+                        sum += _kernel.getItem( j, i ) * _myImage.getItem( y + j - offsety , x + i - offsetx );
                     }
                 }
-                outImage.setPixel( y, x, sum );
+                outImage.setItem( y, x, sum );
             }
         }
 
@@ -177,7 +177,7 @@ private:
         {
             for (int j = 0; j < _myImage.getWidth(); ++j)
             {
-                _myImage.setPixel(i,j,_vector[i*_myImage.getWidth() + j]);
+                _myImage.setItem(i,j,_vector[i*_myImage.getWidth() + j]);
             }
         }
     }
@@ -195,7 +195,7 @@ private:
     std::vector<QPoint> moravec( const CImage& _myImage, float _T, size_t _windowHeight, size_t _windowWidth );
 
     // Детектор Харриса
-    std::vector<QPoint> harris( const CImage& _myImage, float _T , float _k, bool _useNonMaximum, int _colPoint );
+    std::vector<QPoint> harris( const CImage& _myImage, float _T , float _k );
 
     // Подавление не максимальных элементов
     std::vector<QPoint> nonMaximumPoints( std::vector<float>& _value, std::vector<QPoint> _points, int _colPoints );
@@ -206,7 +206,9 @@ private:
 
     float minErrorShift( int _x, int _y, size_t _windowHeight, size_t _windowWidth, const CImage& _myImage );
 
-    void descriptor(const CImage& _myImage, int _colHistogram, int _colPin, int _ambit, std::vector<QPoint> _interestPoint );
+    void descriptor( CImage& _myImage, int _colHistogram, int _colPin, int _ambit, std::vector<QPoint> _interestPoint );
+
+    void fourHistogramms( int x,int y, CDescriptor& _des, float _vG, float _dG );
 };
 
 #endif // CIMAGEHANDLER_H

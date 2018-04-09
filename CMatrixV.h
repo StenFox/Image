@@ -143,6 +143,17 @@ public:
         m_rows = _rows;
         m_matrix = std::move( _vectorForCopy );
     }
+
+    bool isValid( int _columns,int _rows )
+    {
+        if( _columns < 0 || _rows < 0)
+            return false;
+        if( _columns > m_columns - 1 )
+            return false;
+        if( _rows > _rows - 1 )
+            return false;
+        return true;
+    }
 };
 
 #endif // CMATRIXV_H

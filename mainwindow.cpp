@@ -61,12 +61,7 @@ void MainWindow::on_ReloadImageButton_clicked()
 
 void MainWindow::on_pushButton_clicked()
 {
-    myImageHandler->gaussPyramid(*myImage,2,2,1.1);
-    ui->graphicsView->scene()->clear();
-    QGraphicsScene *scene = new QGraphicsScene();
-    QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage(myImage->getImage()));
-    scene->addItem(item);
-    ui->graphicsView->setScene(scene);
+    myPyramidImage = myImageHandler->gaussPyramid( *myImage,ui->colOctave->value(),ui->colScales->value(),ui->doubleSpinBox->value() );
 }
 
 void MainWindow::on_MoravecButton_clicked()
@@ -83,6 +78,15 @@ void MainWindow::on_HarrisonButton_clicked()
     ui->graphicsView->scene()->clear();
     QGraphicsScene *scene = new QGraphicsScene();
     QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage( myImageHandler->showInterestPointHarris( *myImage,44565000,0.06,true,400 ) ) );
+    scene->addItem( item );
+    ui->graphicsView->setScene( scene );
+}
+
+void MainWindow::on_showOctave_clicked()
+{
+    ui->graphicsView->scene()->clear();
+    QGraphicsScene *scene = new QGraphicsScene();
+    QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage( myPyramidImage.getImageInOctaves( ui->octaves->value() ).getImage() ) );
     scene->addItem( item );
     ui->graphicsView->setScene( scene );
 }

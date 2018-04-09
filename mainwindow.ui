@@ -79,7 +79,7 @@
       <x>830</x>
       <y>80</y>
       <width>161</width>
-      <height>301</height>
+      <height>341</height>
      </rect>
     </property>
     <property name="currentIndex">
@@ -159,7 +159,7 @@
        <string>Пирамида Гаусса</string>
       </property>
      </widget>
-     <widget class="QSpinBox" name="spinBox">
+     <widget class="QSpinBox" name="colOctave">
       <property name="geometry">
        <rect>
         <x>100</x>
@@ -169,7 +169,7 @@
        </rect>
       </property>
      </widget>
-     <widget class="QSpinBox" name="spinBox_2">
+     <widget class="QSpinBox" name="colScales">
       <property name="geometry">
        <rect>
         <x>100</x>
@@ -216,6 +216,29 @@
       </property>
       <property name="text">
        <string>Показать октаву</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_5">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>260</y>
+        <width>41</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Октава</string>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="octaves">
+      <property name="geometry">
+       <rect>
+        <x>100</x>
+        <y>260</y>
+        <width>41</width>
+        <height>21</height>
+       </rect>
       </property>
      </widget>
     </widget>

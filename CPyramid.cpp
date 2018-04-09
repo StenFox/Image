@@ -1,5 +1,11 @@
 #include "CPyramid.h"
 
+CPyramid::CPyramid()
+{
+    m_octaves = 0;
+    m_sclaes = 0;
+}
+
 CPyramid::CPyramid( int _octaves, float _sigmaZero, int _scales )
 {
     m_octaves = _octaves;

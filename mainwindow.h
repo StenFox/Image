@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "CImage.h"
 #include "CImageHandler.h"
+#include "CPyramid.h"
 
 namespace Ui {
 class MainWindow;
@@ -32,10 +33,13 @@ private slots:
 
     void on_HarrisonButton_clicked();
 
+    void on_showOctave_clicked();
+
 private:
     CImage* myImage;
     CImage* newImage;
     CImageHandler* myImageHandler;
+    CPyramid myPyramidImage;
     Ui::MainWindow *ui;
 };
 

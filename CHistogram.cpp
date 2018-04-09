@@ -1,5 +1,5 @@
 #include "CHistogram.h"
-#include "cmath"
+#include <cmath>
 
 CHistogram::CHistogram( int _colPin )
 {

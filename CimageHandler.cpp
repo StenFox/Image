@@ -31,7 +31,7 @@ void CImageHandler::grayScale( QImage& _image, CImage& _myImage )
         for(auto j = 0 ; pixel != end; pixel++,j++ )
         {
             int gray = qGray( *pixel );
-            _myImage.setPixel(i,j,gray );
+            _myImage.setItem(i,j,gray );
         }
     }
 }
@@ -78,7 +78,7 @@ void CImageHandler::magnitude( CImage& _input, const CImage& _gx, const CImage& 
     {
         for ( auto x = 0; x < _input.getWidth(); x++ )
         {
-            _input.setPixel( y, x, hypot ( _gx.getPixel( y,x ), _gy.getPixel( y,x ) ) );
+            _input.setItem( y, x, hypot ( _gx.getItem( y,x ), _gy.getItem( y,x ) ) );
         }
     }
 }
@@ -162,10 +162,10 @@ vector<float> CImageHandler::resizeBilinear( const CImage& _img, int _widthOld, 
             x_diff = ( x_ratio * j ) - x;
             y_diff = ( y_ratio * i ) - y;
             index = ( y  * _widthOld + x );
-            a = _img.getPixel( 0,index);
-            b = _img.getPixel( 0,index+1 );
-            c = _img.getPixel( 0, index + _widthOld );
-            d = _img.getPixel( 0, index + _widthOld + 1 );
+            a = _img.getItem( 0,index);
+            b = _img.getItem( 0,index+1 );
+            c = _img.getItem( 0, index + _widthOld );
+            d = _img.getItem( 0, index + _widthOld + 1 );
             temp[offset++] =  a * ( 1 - x_diff ) * ( 1 - y_diff ) + b * ( x_diff ) * ( 1 - y_diff ) + c * ( y_diff )*( 1 - x_diff ) + d * ( x_diff * y_diff );
         }
     }
@@ -186,11 +186,11 @@ CPyramid CImageHandler::gaussPyramid( const CImage& _img, int _octaves,int _scal
     float deltaSigma;
     sigmaPrev = 0.5;
     float k = pow( 2, (float)1 / _scales);
-    deltaSigma = pifagor( sigmaPrev,sigmaZero );
+    deltaSigma = pifagor( sigmaZero,sigmaPrev );
     CImage temp = _img;
     gaussianBlur( deltaSigma, temp , mtBlackEdge );
 
-    CPyramid pyramid( _octaves,sigmaZero, _scales );
+    CPyramid pyramid( _octaves + 1,sigmaZero, _scales );
     pyramid.setImageInOctaves( temp,0,deltaSigma );
     for( int i = 1; i < _octaves; i++ )
     {
@@ -220,7 +220,7 @@ QImage CImageHandler::setRedPointsOfInterest( CImage& _myImage, vector<QPoint> _
         QRgb *end = pixel + _myImage.getHeight();
         for ( int j =0; pixel != end; pixel++,j++ )
         {            
-             int item = _myImage.getPixel( i,j );
+             int item = _myImage.getItem( i,j );
              *pixel = QColor( item, item, item ).rgb();
         }
     }
@@ -244,7 +244,7 @@ QImage CImageHandler::showInterestPointMoravec( CImage& _myImage, float T, size_
 //-----------------------------------------------------------------------------------
 QImage CImageHandler::showInterestPointHarris( CImage& _myImage, float T, float _k, bool _useNonMaximum, int _colPoints )
 {
-    return setRedPointsOfInterest( _myImage, harris( _myImage,T, _k, _useNonMaximum, _colPoints ) );
+    return setRedPointsOfInterest( _myImage, harris( _myImage,T, _k ) );
 }
 
 //-----------------------------------------------------------------------------------
@@ -294,7 +294,7 @@ float CImageHandler::valueErrorShift( int _x, int _y, int _sh, size_t _windowHei
     {
         for( size_t i = 0; i < _windowWidth; i++ )
         {
-            float dif = _myImage.getPixel( _y + j - offsety, _x + i - offsetx ) - _myImage.getPixel( _y + j - offsety + g_shiftWindow[_sh].first, _x + i - offsetx + g_shiftWindow[_sh].second );
+            float dif = _myImage.getItem( _y + j - offsety, _x + i - offsetx ) - _myImage.getItem( _y + j - offsety + g_shiftWindow[_sh].first, _x + i - offsetx + g_shiftWindow[_sh].second );
             dif = dif * dif;
             sum += dif;
         }
@@ -334,7 +334,7 @@ bool CImageHandler::filtrate( int _x, int _y, float _valueOperator, float _T, co
 }
 
 //-----------------------------------------------------------------------------------
-vector<QPoint> CImageHandler::harris( const CImage& _myImage, float _T , float _k, bool _useNonMaximum, int _colPoints )
+vector<QPoint> CImageHandler::harris( const CImage& _myImage, float _T , float _k )
 {
     auto dx = convolution( g_sobelX, _myImage, mtBlackEdge );
     auto dy = convolution( g_sobelY, _myImage, mtBlackEdge );
@@ -345,9 +345,9 @@ vector<QPoint> CImageHandler::harris( const CImage& _myImage, float _T , float _
     size_t p = 3;
     auto offsetp = p/2;
 
-    for( int y = 1 + offsetp ; y < _myImage.getHeight() - 1 - offsetp; y++ )
+    for( auto y = 1 + offsetp ; y < _myImage.getHeight() - 1 - offsetp; y++ )
     {
-        for( int x = 1 + offsetp; x < _myImage.getWidth() - 1 - offsetp; x++ )
+        for( auto x = 1 + offsetp; x < _myImage.getWidth() - 1 - offsetp; x++ )
         {
             float M = eigenvaluesHarris( x, y, dx, dy, _k, p );
             if( filtrate( x, y, M, _T, _myImage, p , 0 , 0, dx, dy, _k ) )
@@ -357,7 +357,6 @@ vector<QPoint> CImageHandler::harris( const CImage& _myImage, float _T , float _
             }
         }
     }
-
     return point;
 }
 
@@ -374,13 +373,11 @@ float CImageHandler::eigenvaluesHarris( int _x, int _y, const CImage& _dx, const
     {
         for( int px = 0; px < _ambit; px++ )
         {
-           float dxv = _dx.getPixel( _y + py - offestp,_x + px - offestp );
-           float dyv = _dy.getPixel( _y + py - offestp,_x + px - offestp );
+           float dxv = _dx.getItem( _y + py - offestp,_x + px - offestp );
+           float dyv = _dy.getItem( _y + py - offestp,_x + px - offestp );
            A += dxv * dxv;
-           B += dxv * dyv ;
+           B += dxv * dyv;
            C += dyv * dyv;
-           if( C != 0 )
-               int cf = 0;
         }
     }
     return ( A * C - B * B ) - _k *( ( A + C ) * ( A + C ) );
@@ -419,7 +416,7 @@ vector<QPoint> CImageHandler::nonMaximumPoints( vector<float>& _value, vector<QP
 }
 
 
-void CImageHandler::descriptor( const CImage& _myImage, int _colHistogram, int _colPin, int _ambit, vector<QPoint> _interestPoint )
+void CImageHandler::descriptor( CImage& _myImage, int _colHistogram, int _colPin, int _ambit, vector<QPoint> _interestPoint )
 {
     vector<CDescriptor> descriptors;
     descriptors.resize( _interestPoint.size(), CDescriptor( 8, 4 ) );
@@ -432,12 +429,12 @@ void CImageHandler::descriptor( const CImage& _myImage, int _colHistogram, int _
 
     CImage directionGradient( _myImage.getHeight(),_myImage.getWidth() );
 
-    for( size_t y = 0; y < directionGradient.getHeight(); y++ )
+    for( auto y = 0; y < directionGradient.getHeight(); y++ )
     {
-        for( size_t x = 0; x < directionGradient.getWidth(); x++ )
+        for( auto x = 0; x < directionGradient.getWidth(); x++ )
         {
-            double phi = ( atan2( dx.getPixel( y, x ), dy.getPixel( y, x ) ) * 180 / M_PI ) + 180;
-            directionGradient.setPixel( y, x, phi );
+            double phi = ( atan2( dx.getItem( y, x ), dy.getItem( y, x ) ) * 180 / M_PI ) + 180;
+            directionGradient.setItem( y, x, phi );
         }
     }
 
@@ -451,24 +448,29 @@ void CImageHandler::descriptor( const CImage& _myImage, int _colHistogram, int _
             {
                 int yP = _interestPoint[k].y() + y;
                 int xP = _interestPoint[k].x() + x;
-                if( x < 0 && y < 0 )
+                float vG = 0;
+                float dG = 0;
+                if( _myImage.isValid(  yP,xP ) )
                 {
-                    descriptors[k].addValueInHistogramm( valueGradient.getPixel( yP,xP ), directionGradient.getPixel( yP,xP ), 2 );
+                    vG = valueGradient.getItem( yP,xP );
+                    dG = directionGradient.getItem( yP,xP );
                 }
-                if( x < 0 && y >= 0 )
-                {
-                    descriptors[k].addValueInHistogramm( valueGradient.getPixel( yP,xP ), directionGradient.getPixel( yP,xP ), 0 );
-                }
-                if( x >= 0 && y < 0 )
-                {
-                    descriptors[k].addValueInHistogramm( valueGradient.getPixel( yP,xP ), directionGradient.getPixel( yP,xP ), 3 );
-                }
-                if( x >= 0 && y >= 0 )
-                {
-                    descriptors[k].addValueInHistogramm( valueGradient.getPixel(  yP,xP ), directionGradient.getPixel( yP,xP ), 1 );
-                }
+                fourHistogramms( x, y, descriptors[k], vG, dG );
             }
         }
     }
-    int b =0;
+}
+
+void CImageHandler::fourHistogramms( int x,int y, CDescriptor& _des, float _vG, float _dG )
+{
+    int gist = 0;
+    if( x < 0 && y < 0 )
+        gist = 2;
+    if( x < 0 && y >= 0 )
+        gist = 0;
+    if( x >= 0 && y < 0 )
+        gist = 3;
+    if( x >= 0 && y >= 0 )
+        gist = 1;
+    _des.addValueInHistogramm( _vG, _dG, gist );
 }

@@ -6,6 +6,7 @@
 class CPyramid
 {
 public:
+    CPyramid();
 
     CPyramid( int _octaves, float _sigmaZero, int _scales );
 

@@ -4,6 +4,7 @@
 #include <QImage>
 #include "QPixmap"
 #include "CMatrixV.h"
+#include "CDescriptor.h"
 
 class CImage
 {
@@ -52,12 +53,12 @@ public:
         m_myImage.setRows( _value );
     }
 
-    void setPixel( int _columns, int _rows, float _value )
+    void setItem( int _columns, int _rows, float _value )
     {
         m_myImage.setItem( _columns, _rows, _value );
     }
 
-    float getPixel( int _columns,int _rows ) const
+    float getItem( int _columns,int _rows ) const
     {
         return m_myImage.getItem( _columns,_rows );
     }
@@ -77,8 +78,24 @@ public:
         m_myImage.normalize();
     }
 
+    void setDesriptors( std::vector<CDescriptor>& _descriptors )
+    {
+        m_desriptors = std::move( _descriptors );
+    }
+
+    std::vector<CDescriptor> getDescriptors()
+    {
+        return m_desriptors;
+    }
+
+    bool isValid( int _columns,int rows )
+    {
+        return m_myImage.isValid( _columns, rows );
+    }
+
 private:
     CMatrixV<float> m_myImage;
+    std::vector<CDescriptor> m_desriptors;
 };
 
 #endif // CIMAGE_H
