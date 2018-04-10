@@ -41,6 +41,32 @@ void CHistogram::addValueinPin( float _value, float _phi )
     float k1 = ( _phi - ( ( pin * step ) + step / 2 ) ) / step;
     float k2 = ( ( ( pin2 * step ) + step / 2 ) - _phi ) / step;
 
+    k1 = 1 - k1;
+    k2 = 1 - k2;
+
     m_histogramms[pin] = _value * k1;
     m_histogramms[pin2] = _value * k2;
+}
+
+void CHistogram::normalize( float _max )
+{
+    for( size_t i = 0; i < m_histogramms.size(); i++ )
+    {
+        m_histogramms[i] /= _max;
+    }
+
+    for( size_t i = 0; i < m_histogramms.size(); i++ )
+    {
+        if( m_histogramms[i] > 0.2 )
+            m_histogramms[i] = 0.2;
+    }
+}
+
+void CHistogram::bound( float _val )
+{
+    for( size_t i = 0; i < m_histogramms.size(); i++ )
+    {
+        if( m_histogramms[i] > _val )
+            m_histogramms[i] = _val;
+    }
 }

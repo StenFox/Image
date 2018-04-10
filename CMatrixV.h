@@ -150,7 +150,7 @@ public:
             return false;
         if( _columns > m_columns - 1 )
             return false;
-        if( _rows > _rows - 1 )
+        if( _rows > m_rows - 1 )
             return false;
         return true;
     }

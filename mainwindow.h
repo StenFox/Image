@@ -35,9 +35,17 @@ private slots:
 
     void on_showOctave_clicked();
 
+    void on_loadImage1_clicked();
+
+    void on_loadImage2_clicked();
+
+    void on_showImages_clicked();
+
 private:
     CImage* myImage;
     CImage* newImage;
+    CImage* myImage1;
+    CImage* myImage2;
     CImageHandler* myImageHandler;
     CPyramid myPyramidImage;
     Ui::MainWindow *ui;

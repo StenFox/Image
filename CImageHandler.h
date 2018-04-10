@@ -21,7 +21,8 @@ enum mtProcessingEdgeEffects
 
 enum mtHistogramm
 {
-    mtFourHistgrammsS,
+    mtFourHistgramms,
+    mtSixteenHistgramms,
 };
 
 class CImageHandler
@@ -48,14 +49,13 @@ public:
     // Оператор Робертса
     void robert( mtProcessingEdgeEffects _method, CImage& _image );
 
-    // Билинейная интреполяция уменьшаем изображение в 2 раза
-    CImage* resizeTwo( CImage& _myImage );
+    std::vector<std::pair<CDescriptor,CDescriptor>> imageComparison( CImage& _myImage1,CImage& _myImage2 );
 
-    // Отобразить точки интереса с помощью Морравика
-    QImage showInterestPointMoravec( CImage& _myImage, float T, size_t _windowHeight, size_t _windowWidth );
+    // Детектор Харриса
+    std::vector<QPoint> harris( const CImage& _myImage, float _T , float _k,bool _useNonMaximum, int _colPonts );
 
-    // Отобразить точки интереса с помощью Харриса
-    QImage showInterestPointHarris( CImage& _myImage, float T, float _k, bool _useNonMaximum, int _colPoints );
+    // Детектор Моравика
+    std::vector<QPoint> moravec( const CImage& _myImage, float _T, size_t _windowHeight, size_t _windowWidth, bool _useNonMaximum, int _colPoints );
 
 private:    
     // Ядро Собель по X
@@ -104,12 +104,14 @@ private:
             for (auto x = 0; x < widthImg; x++)
             {
                 sum = 0;
+                bool flag = false;
                 for (auto j = 0; j < kh; j++)
                 {
-                    if ((y + j < offsety || y + j >= heightImg))
+                    if( ( y + j < offsety || y + j >= heightImg ) )
                     {
                         if( _method == mtBlackEdge )
                             continue;
+                        flag = true;
                     }
                     for (auto i = 0; i < kw; i++)
                     {
@@ -119,12 +121,12 @@ private:
                                 continue;
                             if( _method == mtCopyEdge )
                             {
-                                sum += _kernel.getItem( j, i ) * _myImage.getItem( y + j, x + i );
+                                sum += _kernel.getItem( j, i ) * _myImage.getItem( y, x );
                                 continue;
                             }
                             if( _method == mtThor )
                             {
-                                if(y + j < offsety )
+                                if( y + j < offsety )
                                 {
                                     if(x + i < offsetx)
                                     {
@@ -155,6 +157,28 @@ private:
                                 }
                             }
                         }
+                        else if( flag )
+                        {
+                            if( _method == mtCopyEdge )
+                            {
+                                sum += _kernel.getItem( j, i ) * _myImage.getItem( y, x + i - offsetx );
+                                continue;
+                            }
+                            if( _method == mtThor )
+                            {
+                                if( y + j < offsety )
+                                {
+                                    sum += _kernel.getItem( j, i ) * _myImage.getItem(  heightImg , x + i - offsetx );
+                                    continue;
+                                }
+
+                                if( y + j >= heightImg )
+                                {
+                                    sum += _kernel.getItem( j, i ) * _myImage.getItem( 0, x + i - offsetx );
+                                    continue;
+                                }
+                            }
+                        }
 
                         sum += _kernel.getItem( j, i ) * _myImage.getItem( y + j - offsety , x + i - offsetx );
                     }
@@ -175,18 +199,6 @@ private:
     // Две последовательных свёртки для ускорния
     void convolutionForGauss( float _sigma, CImage& _myImage, mtProcessingEdgeEffects _method );
 
-    // Применить свёртку к изображению
-    void applyConvolution( std::vector<float>& _vector, CImage& _myImage )
-    {
-        for (int i = 0; i < _myImage.getHeight(); ++i)
-        {
-            for (int j = 0; j < _myImage.getWidth(); ++j)
-            {
-                _myImage.setItem(i,j,_vector[i*_myImage.getWidth() + j]);
-            }
-        }
-    }
-
     // Билинейная интерполяция
     std::vector<float> resizeBilinear( const CImage& _myImage, int _widthOld, int _heightOld, int _widthNew, int _heightNew );
 
@@ -198,12 +210,6 @@ private:
 
     // Фильтруем точки интереса
     bool filtrate( int _x, int _y, float _valueOperator, float _T, const CImage& _myImage,int _ambit, int _windowHeight, int _windowWidth, const CImage& _dx, const CImage& _dy, float _k  );
-
-    // Детектор Моравика
-    std::vector<QPoint> moravec( const CImage& _myImage, float _T, size_t _windowHeight, size_t _windowWidth );
-
-    // Детектор Харриса
-    std::vector<QPoint> harris( const CImage& _myImage, float _T , float _k );
 
     // Подавление не максимальных элементов
     std::vector<QPoint> nonMaximumPoints( std::vector<float>& _value, std::vector<QPoint> _points, int _colPoints );
@@ -222,6 +228,10 @@ private:
 
     // Распределяем значения между 4 гистораммами
     void fourHistogramms( int x,int y, CDescriptor& _des, float _vG, float _dG );
+
+    void sixteenHistogramms( int x,int y, CDescriptor& _des, float _vG, float _dG );
+
+    float distanceBetweenDescriptors( CDescriptor _d, CDescriptor _d1 );
 };
 
 #endif // CIMAGEHANDLER_H

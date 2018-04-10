@@ -23,7 +23,7 @@ CImageHandler::CImageHandler()
 //-----------------------------------------------------------------------------------
 void CImageHandler::grayScale( QImage& _image, CImage& _myImage )
 {
-    Q_ASSERT( _image.format() == QImage::Format_RGB32 );
+    //Q_ASSERT( _image.format() == QImage::Format_RGB32 );
     for( int i = 0; i < _image.height(); i++ )
     {
         QRgb *pixel = reinterpret_cast<QRgb*>( _image.scanLine( i ) );
@@ -52,13 +52,6 @@ void CImageHandler::priwitt( mtProcessingEdgeEffects _method, CImage& _image )
 void CImageHandler::robert( mtProcessingEdgeEffects _method, CImage& _image  )
 {
     magnitude( _image, convolution( g_robertX, _image, _method ), convolution( g_robertY, _image, _method ) );
-}
-
-//-----------------------------------------------------------------------------------
-CImage* CImageHandler::resizeTwo( CImage& _myImage )
-{
-    vector<float> temp = resizeBilinear( _myImage,_myImage.getWidth(),_myImage.getHeight(),_myImage.getWidth()/2,_myImage.getHeight()/2 );
-    return new CImage( _myImage.getHeight()/2,_myImage.getWidth()/2,temp );
 }
 
 //-----------------------------------------------------------------------------------
@@ -192,7 +185,7 @@ CPyramid CImageHandler::gaussPyramid( const CImage& _img, int _octaves,int _scal
 
     CPyramid pyramid( _octaves + 1,sigmaZero, _scales );
     pyramid.setImageInOctaves( temp,0,deltaSigma );
-    for( int i = 1; i < _octaves; i++ )
+    for( int i = 1; i <= _octaves; i++ )
     {
         sigmaPrev = sigmaZero;
         sigmaNext = sigmaPrev * k;
@@ -235,24 +228,12 @@ QImage CImageHandler::setRedPointsOfInterest( CImage& _myImage, vector<QPoint> _
 }
 
 //-----------------------------------------------------------------------------------
-QImage CImageHandler::showInterestPointMoravec( CImage& _myImage, float T, size_t _windowHeight, size_t _windowWidth )
-{
-    descriptor(_myImage,4,8,16, moravec( _myImage,T, _windowHeight, _windowWidth ));
-    return setRedPointsOfInterest( _myImage, moravec( _myImage,T, _windowHeight, _windowWidth ) );
-}
-
-//-----------------------------------------------------------------------------------
-QImage CImageHandler::showInterestPointHarris( CImage& _myImage, float T, float _k, bool _useNonMaximum, int _colPoints )
-{
-    return setRedPointsOfInterest( _myImage, harris( _myImage,T, _k ) );
-}
-
-//-----------------------------------------------------------------------------------
-vector<QPoint> CImageHandler::moravec(const CImage& _myImage, float _T, size_t _windowHeight, size_t _windowWidth  )
+vector<QPoint> CImageHandler::moravec(const CImage& _myImage, float _T, size_t _windowHeight, size_t _windowWidth, bool _useNonMaximum, int _colPoints  )
 {
     auto offsetx = _windowWidth / 2;
     auto offsety = _windowHeight / 2;
     vector<QPoint> point;
+    vector<float> values;
 
     int p = 3;
     auto offestp = p / 2;
@@ -263,10 +244,16 @@ vector<QPoint> CImageHandler::moravec(const CImage& _myImage, float _T, size_t _
         {
             float minError = minErrorShift( x, y, _windowHeight, _windowWidth, _myImage );
             if( filtrate( x, y, minError, _T, _myImage, p, _windowHeight, _windowWidth, _myImage, _myImage, 0 ) )
+            {
                 point.push_back( QPoint( x, y ) );
+                values.push_back( minError );
+            }
 
         }
     }
+
+    if(_useNonMaximum)
+        nonMaximumPoints( values, point, _colPoints );
     return point;
 }
 
@@ -334,7 +321,7 @@ bool CImageHandler::filtrate( int _x, int _y, float _valueOperator, float _T, co
 }
 
 //-----------------------------------------------------------------------------------
-vector<QPoint> CImageHandler::harris( const CImage& _myImage, float _T , float _k )
+vector<QPoint> CImageHandler::harris( const CImage& _myImage, float _T , float _k, bool _useNonMaximum, int _colPoints )
 {
     auto dx = convolution( g_sobelX, _myImage, mtBlackEdge );
     auto dy = convolution( g_sobelY, _myImage, mtBlackEdge );
@@ -357,6 +344,10 @@ vector<QPoint> CImageHandler::harris( const CImage& _myImage, float _T , float _
             }
         }
     }
+
+    if( _useNonMaximum )
+        nonMaximumPoints( value,point,_colPoints );
+
     return point;
 }
 
@@ -373,8 +364,8 @@ float CImageHandler::eigenvaluesHarris( int _x, int _y, const CImage& _dx, const
     {
         for( int px = 0; px < _ambit; px++ )
         {
-           float dxv = _dx.getItem( _y + py - offestp,_x + px - offestp );
-           float dyv = _dy.getItem( _y + py - offestp,_x + px - offestp );
+           float dxv = _dx.getItem( _y + py - offestp, _x + px - offestp );
+           float dyv = _dy.getItem( _y + py - offestp, _x + px - offestp );
            A += dxv * dxv;
            B += dxv * dyv;
            C += dyv * dyv;
@@ -419,7 +410,7 @@ vector<QPoint> CImageHandler::nonMaximumPoints( vector<float>& _value, vector<QP
 void CImageHandler::descriptor( CImage& _myImage, int _colHistogram, int _colPin, int _ambit, vector<QPoint> _interestPoint )
 {
     vector<CDescriptor> descriptors;
-    descriptors.resize( _interestPoint.size(), CDescriptor( 8, 4 ) );
+    descriptors.resize( _interestPoint.size(), CDescriptor( 8, 16 ) );
 
     auto dx = convolution( g_sobelX, _myImage, mtBlackEdge );
     auto dy = convolution( g_sobelY, _myImage, mtBlackEdge );
@@ -448,17 +439,17 @@ void CImageHandler::descriptor( CImage& _myImage, int _colHistogram, int _colPin
             {
                 int yP = _interestPoint[k].y() + y;
                 int xP = _interestPoint[k].x() + x;
-                float vG = 0;
-                float dG = 0;
                 if( _myImage.isValid(  yP,xP ) )
                 {
-                    vG = valueGradient.getItem( yP,xP );
-                    dG = directionGradient.getItem( yP,xP );
+                    float vG = valueGradient.getItem( yP,xP );
+                    float dG = directionGradient.getItem( yP,xP );
+                    sixteenHistogramms( x, y, descriptors[k], vG, dG );
                 }
-                fourHistogramms( x, y, descriptors[k], vG, dG );
             }
         }
+        descriptors[k].normalize();
     }
+    _myImage.setDesriptors( descriptors );
 }
 
 //-----------------------------------------------------------------------------------
@@ -474,4 +465,107 @@ void CImageHandler::fourHistogramms( int x,int y, CDescriptor& _des, float _vG, 
     if( x >= 0 && y >= 0 )
         gist = 1;
     _des.addValueInHistogramm( _vG, _dG, gist );
+}
+
+
+//-----------------------------------------------------------------------------------
+void CImageHandler::sixteenHistogramms( int x,int y, CDescriptor& _des, float _vG, float _dG )
+{
+    int gist = 0;
+    if( x <= 3 && y <= 3 )
+        gist = 0;
+    else if( x <= 7 && y <= 3 )
+        gist = 1;
+    else if( x <= 11 && y <= 3 )
+        gist = 2;
+    else if( x <= 15 && y <= 3 )
+        gist = 3;
+    else if( x <= 3 && y <= 7 )
+        gist = 4;
+    else if( x <= 7 && y <= 7 )
+        gist = 5;
+    else if( x <= 11 && y <= 7 )
+        gist = 6;
+    else if( x <= 15 && y <= 7 )
+        gist = 7;
+    else if( x <= 3 && y <= 11 )
+        gist = 8;
+    else if( x <= 7 && y <= 11 )
+        gist = 9;
+    else if( x <= 11 && y <= 11 )
+        gist = 10;
+    else if( x <= 15 && y <= 11 )
+        gist = 11;
+    else if( x <= 3 && y <= 15 )
+        gist = 12;
+    else if( x <= 7 && y <= 15 )
+        gist = 13;
+    else if( x <= 11 && y <= 15 )
+        gist = 14;
+    else if( x <= 15 && y <= 15 )
+        gist = 15;
+    _des.addValueInHistogramm( _vG, _dG, gist );
+}
+
+//-----------------------------------------------------------------------------------
+float CImageHandler::distanceBetweenDescriptors( CDescriptor _d, CDescriptor _d1 )
+{
+    Q_ASSERT( _d.getColHistogramms() == _d1.getColHistogramms() );
+    Q_ASSERT( _d.getHistograms(0).getColPin() == _d1.getHistograms(0).getColPin() );
+
+    float Edistance = 0;
+    for( int i = 0; i < _d.getColHistogramms(); i++)
+    {
+        int colPin = _d.getHistograms(i).getColPin();
+
+        for( int j = 0; j < colPin; j++ )
+        {
+            float difference;
+            difference = _d.getHistograms(i).getPin(j) - _d1.getHistograms(i).getPin(j);
+            difference *= difference;
+            Edistance += difference;
+        }
+    }
+    Edistance = sqrt(Edistance);
+    return Edistance;
+}
+
+//-----------------------------------------------------------------------------------
+vector<pair<CDescriptor,CDescriptor>> CImageHandler::imageComparison( CImage& _myImage1,CImage& _myImage2 )
+{
+    descriptor( _myImage1, 16, 8, 16, moravec( _myImage1, 1800, 3, 3, false, 0 ) );
+    descriptor( _myImage2, 16, 8, 16, moravec( _myImage2, 1800, 3, 3, false, 0 ) );
+
+    auto des1 = _myImage1.getDescriptors();
+    auto des2 = _myImage2.getDescriptors();
+
+    vector<pair<CDescriptor,CDescriptor>> sop;
+    for( size_t i = 0; i < des1.size(); i++ )
+    {
+       float min = 99999999999;
+       float min2 = 99999999999;
+       int jmin = 0;
+       for( size_t j = 0; j < des2.size(); j++ )
+       {
+          float Edistance = distanceBetweenDescriptors( des1[i], des2[j] );
+          if( Edistance < min )
+          {
+              jmin = j;
+              min = Edistance;
+          }
+          if( min2 < Edistance && min2 > min )
+          {
+              min2 = Edistance;
+          }
+          if( min == 0 )
+              break;
+       }
+       if( min / min2 > 0.8 )
+           continue;
+       sop.push_back( make_pair( des1[i], des2[jmin]) );
+       des1.erase( des1.begin() + i );
+       des2.erase( des2.begin() + jmin );
+       i--;
+    }
+    return sop;
 }

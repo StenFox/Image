@@ -31,3 +31,29 @@ void CDescriptor::setInterestPoint( QPoint _interestPoint )
 {
      m_intrestPoint = _interestPoint;
 }
+
+void CDescriptor::normalize()
+{
+    float l2 = 0;
+    for( int i = 0; i < m_descriptor.size(); i++ )
+    {
+        l2 += m_descriptor[i].sumOfSquares();
+    }
+    l2 = sqrt(l2);
+    for( int i = 0; i < m_descriptor.size(); i++ )
+    {
+        m_descriptor[i].normalize( l2 );
+        m_descriptor[i].bound(0.2);
+    }
+
+    l2 = 0;
+    for( int i = 0; i < m_descriptor.size(); i++ )
+    {
+        l2 += m_descriptor[i].sumOfSquares();
+    }
+    l2 = sqrt( l2 );
+    for( int i = 0; i < m_descriptor.size(); i++ )
+    {
+        m_descriptor[i].normalize( l2 );
+    }
+}
