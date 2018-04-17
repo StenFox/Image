@@ -44,8 +44,8 @@ void CHistogram::addValueinPin( float _value, float _phi )
     k1 = 1 - k1;
     k2 = 1 - k2;
 
-    m_histogramms[pin] = _value * k1;
-    m_histogramms[pin2] = _value * k2;
+    m_histogramms[pin] += _value * k1;
+    m_histogramms[pin2] += _value * k2;
 }
 
 void CHistogram::normalize( float _max )
