@@ -88,7 +88,7 @@ public:
         return m_desriptors;
     }
 
-    bool isValid( int _columns,int rows )
+    bool isValid( int _columns,int rows ) const
     {
         return m_myImage.isValid( _columns, rows );
     }

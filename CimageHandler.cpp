@@ -1,5 +1,6 @@
 #include "CImageHandler.h"
 #include "CImageKernels.h"
+#include "CHistogram.h"
 
 using namespace  std;
 
@@ -568,4 +569,84 @@ vector<pair<CDescriptor,CDescriptor>> CImageHandler::imageComparison( CImage& _m
        i--;
     }
     return sop;
+}
+
+
+//-----------------------------------------------------------------------------------
+void CImageHandler::descriptorRotation( CImage& _myImage, int _ambit, vector<QPoint> _interestPoint )
+{
+    vector<CDescriptor> descriptors;
+
+    auto dx = convolution( g_sobelX, _myImage, mtBlackEdge );
+    auto dy = convolution( g_sobelY, _myImage, mtBlackEdge );
+
+    CImage valueGradient( _myImage.getHeight(),_myImage.getWidth() );
+    magnitude( valueGradient, dx, dy );
+    CImage valueGradientG = valueGradient;
+
+    gaussianBlur( 1.2, valueGradientG, mtBlackEdge );
+
+    CImage directionGradient( _myImage.getHeight(),_myImage.getWidth() );
+
+    for( auto y = 0; y < directionGradient.getHeight(); y++ )
+    {
+        for( auto x = 0; x < directionGradient.getWidth(); x++ )
+        {
+            double phi = ( atan2( dx.getItem( y, x ), dy.getItem( y, x ) ) * 180 / M_PI ) + 180;
+            directionGradient.setItem( y, x, phi );
+        }
+    }
+
+
+    for( size_t  k = 0; k < _interestPoint.size(); k++ )
+    {
+        CDescriptor des(36,16);
+        des.setInterestPoint( _interestPoint[k]);
+        auto peaks = pointOrientation( directionGradient, valueGradientG, _interestPoint[k],_ambit );
+        for( size_t i = 0; i < peaks.size(); i++ )
+        {
+            CDescriptor des(36,16);
+            for( int y = -_ambit / 2; y < _ambit / 2; y++ )
+            {
+                for( int x = -_ambit / 2; x < _ambit / 2; x++ )
+                {
+                    int yP = _interestPoint[k].y() + y;
+                    int xP = _interestPoint[k].x() + x;
+                    if( _myImage.isValid(  yP,xP ) )
+                    {
+                        float vG = valueGradient.getItem( yP,xP );
+                        float dG = directionGradient.getItem( yP,xP ) - peaks[i];
+                        // вычисляем индекс куда записывать значения
+                        int y_Rotate = round( (x) * cos( peaks[i] ) + y * sin( peaks[i] ) );
+                        int x_Rotate = round( (y) * cos( peaks[i] ) + x * sin( peaks[i] ) );
+                        sixteenHistogramms( x, y, descriptors[k], vG, dG );
+                    }
+                }
+            }
+            descriptors[k].normalize();
+        }
+    }
+    _myImage.setDesriptors( descriptors );
+}
+
+//-----------------------------------------------------------------------------------
+vector<float> CImageHandler::pointOrientation(const CImage& _direction,const CImage& _value, const QPoint _point, int _ambit )
+{
+    CHistogram histogramm(36);
+
+    for( int y = -_ambit / 2; y < _ambit / 2; y++ )
+    {
+        for( int x = -_ambit / 2; x < _ambit / 2; x++ )
+        {
+            int yP = _point.y() + y;
+            int xP = _point.x() + x;
+            if( _direction.isValid( yP, xP ) && _value.isValid( yP, xP ) )
+            {
+                float vG = _value.getItem( yP,xP );
+                float dG = _direction.getItem( yP,xP );
+                histogramm.addValueinPin( vG, dG );
+            }
+        }
+    }
+    return histogramm.getPeaks();
 }

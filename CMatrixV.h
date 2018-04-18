@@ -144,7 +144,7 @@ public:
         m_matrix = std::move( _vectorForCopy );
     }
 
-    bool isValid( int _columns,int _rows )
+    bool isValid( int _columns,int _rows ) const
     {
         if( _columns < 0 || _rows < 0)
             return false;

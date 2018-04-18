@@ -70,3 +70,37 @@ void CHistogram::bound( float _val )
             m_histogramms[i] = _val;
     }
 }
+
+std::vector<float> CHistogram::getPeaks()
+{
+    float peak1 = -1;
+    float peak2 = -1;
+    size_t peak1index = -1;
+    size_t peak2index = -1;
+
+    std::vector<float> peaks;
+
+    for( size_t i = 0; i < m_histogramms.size(); i++)
+    {
+        if( peak1 < m_histogramms[i])
+        {
+            peak1index = i;
+        }
+        if( peak2 < m_histogramms[i] && m_histogramms[i] < peak1 )
+        {
+            peak2 = m_histogramms[i];
+            peak2index = i;
+        }
+    }
+    peaks.push_back( pInterpolation(peak1index));
+    if( peak2index != -1 && peak1 / peak2 >= 0.8 )
+        peaks.push_back( pInterpolation( peak2index ) );
+}
+
+float CHistogram::pInterpolation( const int _index )
+{
+    auto left = m_histogramms[( _index - 1 + m_pin ) % m_pin];
+    auto right = m_histogramms[( _index + 1 + m_pin ) % m_pin];
+    auto mid = m_histogramms[_index];
+    return (left - right) / (2 * (left + right - 2 * mid));
+}

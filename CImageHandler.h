@@ -232,6 +232,10 @@ private:
     void sixteenHistogramms( int x,int y, CDescriptor& _des, float _vG, float _dG );
 
     float distanceBetweenDescriptors( CDescriptor _d, CDescriptor _d1 );
+
+    void descriptorRotation( CImage& _myImage, int _ambit, std::vector<QPoint> _interestPoint );
+
+    std::vector<float> pointOrientation(const CImage& _direction,const CImage& _value, const QPoint _point, int _ambit );
 };
 
 #endif // CIMAGEHANDLER_H

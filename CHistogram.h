@@ -39,9 +39,15 @@ public:
         return sum;
     }
 
+    std::vector<float> getPeaks();
+
 private:
+
+
     int m_pin;  
     std::vector<float> m_histogramms;
+
+    float pInterpolation( const int _index );
 };
 
 #endif // CHISTOGRAM_H
