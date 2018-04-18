@@ -9,13 +9,12 @@ CHistogram::CHistogram( int _colPin )
 
 CHistogram::~CHistogram()
 {
-    m_pin = 0;
-    m_histogramms.clear();
+
 }
 
 void CHistogram::addValueinPin( float _value, float _phi )
 {
-    float step = 360 / m_pin;
+    float step = 2 * M_PI / m_pin;
     int pin = _phi / step;
     int pin2;
     if( _phi >= ( pin * step + step / 2 ) )
@@ -82,8 +81,9 @@ std::vector<float> CHistogram::getPeaks()
 
     for( size_t i = 0; i < m_histogramms.size(); i++)
     {
-        if( peak1 < m_histogramms[i])
+        if( peak1 < m_histogramms[i] )
         {
+            peak1 =  m_histogramms[i];
             peak1index = i;
         }
         if( peak2 < m_histogramms[i] && m_histogramms[i] < peak1 )
@@ -92,15 +92,16 @@ std::vector<float> CHistogram::getPeaks()
             peak2index = i;
         }
     }
-    peaks.push_back( pInterpolation(peak1index));
+    peaks.push_back( pInterpolation( peak1index ) );
     if( peak2index != -1 && peak1 / peak2 >= 0.8 )
         peaks.push_back( pInterpolation( peak2index ) );
+    return peaks;
 }
 
 float CHistogram::pInterpolation( const int _index )
 {
-    auto left = m_histogramms[( _index - 1 + m_pin ) % m_pin];
-    auto right = m_histogramms[( _index + 1 + m_pin ) % m_pin];
-    auto mid = m_histogramms[_index];
-    return (left - right) / (2 * (left + right - 2 * mid));
+    auto left = m_histogramms.at( ( _index - 1 + m_pin ) % m_pin );
+    auto right = m_histogramms.at( ( _index + 1 ) % m_pin );
+    auto mid = m_histogramms[ _index ];
+    return ( left - right ) / ( 2 * ( left + right - 2 * mid ) );
 }

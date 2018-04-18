@@ -57,6 +57,8 @@ public:
     // Детектор Моравика
     std::vector<QPoint> moravec( const CImage& _myImage, float _T, size_t _windowHeight, size_t _windowWidth, bool _useNonMaximum, int _colPoints );
 
+    void descriptorRotation( CImage& _myImage, int _ambit, std::vector<QPoint>& _interestPoint );
+
 private:    
     // Ядро Собель по X
     static const CMatrixV<int> g_sobelX;
@@ -233,7 +235,7 @@ private:
 
     float distanceBetweenDescriptors( CDescriptor _d, CDescriptor _d1 );
 
-    void descriptorRotation( CImage& _myImage, int _ambit, std::vector<QPoint> _interestPoint );
+    //void descriptorRotation( CImage& _myImage, int _ambit, std::vector<QPoint> _interestPoint );
 
     std::vector<float> pointOrientation(const CImage& _direction,const CImage& _value, const QPoint _point, int _ambit );
 };

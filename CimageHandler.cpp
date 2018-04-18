@@ -109,7 +109,6 @@ vector<float> CImageHandler::gaussianKernel( float _sigma )
     int edgeKernel = sizeKernel/2;
 
     float sum = 0;
-    //float s = 2 * _sigma * _sigma;
 
     for (int i = 0, x = -edgeKernel ; x <= edgeKernel; x++,i++ )
     {
@@ -167,9 +166,9 @@ vector<float> CImageHandler::resizeBilinear( const CImage& _img, int _widthOld, 
 }
 
 //-----------------------------------------------------------------------------------
-float pifagor(float sigmaNext,float sigmaPrev)
+float pythagoras( float sigmaNext, float sigmaPrev )
 {
-    return sqrt(sigmaNext * sigmaNext - sigmaPrev * sigmaPrev);
+    return sqrt( sigmaNext * sigmaNext - sigmaPrev * sigmaPrev );
 }
 
 //-----------------------------------------------------------------------------------
@@ -180,7 +179,7 @@ CPyramid CImageHandler::gaussPyramid( const CImage& _img, int _octaves,int _scal
     float deltaSigma;
     sigmaPrev = 0.5;
     float k = pow( 2, (float)1 / _scales);
-    deltaSigma = pifagor( sigmaZero,sigmaPrev );
+    deltaSigma = pythagoras( sigmaZero,sigmaPrev );
     CImage temp = _img;
     gaussianBlur( deltaSigma, temp , mtBlackEdge );
 
@@ -190,7 +189,7 @@ CPyramid CImageHandler::gaussPyramid( const CImage& _img, int _octaves,int _scal
     {
         sigmaPrev = sigmaZero;
         sigmaNext = sigmaPrev * k;
-        deltaSigma = pifagor( sigmaNext,sigmaPrev );
+        deltaSigma = pythagoras( sigmaNext,sigmaPrev );
         for( int j = 0; j < _scales; j++ )
         {
              gaussianBlur( deltaSigma, temp, mtBlackEdge );
@@ -425,7 +424,7 @@ void CImageHandler::descriptor( CImage& _myImage, int _colHistogram, int _colPin
     {
         for( auto x = 0; x < directionGradient.getWidth(); x++ )
         {
-            double phi = ( atan2( dx.getItem( y, x ), dy.getItem( y, x ) ) * 180 / M_PI ) + 180;
+            double phi = ( atan2( dx.getItem( y, x ), dy.getItem( y, x ) ) ) + M_PI;
             directionGradient.setItem( y, x, phi );
         }
     }
@@ -573,9 +572,10 @@ vector<pair<CDescriptor,CDescriptor>> CImageHandler::imageComparison( CImage& _m
 
 
 //-----------------------------------------------------------------------------------
-void CImageHandler::descriptorRotation( CImage& _myImage, int _ambit, vector<QPoint> _interestPoint )
+void CImageHandler::descriptorRotation( CImage& _myImage, int _ambit, vector<QPoint>& _interestPoint )
 {
     vector<CDescriptor> descriptors;
+    descriptors.resize( _interestPoint.size(), CDescriptor( 8, 16 ) );
 
     auto dx = convolution( g_sobelX, _myImage, mtBlackEdge );
     auto dy = convolution( g_sobelY, _myImage, mtBlackEdge );
@@ -592,23 +592,21 @@ void CImageHandler::descriptorRotation( CImage& _myImage, int _ambit, vector<QPo
     {
         for( auto x = 0; x < directionGradient.getWidth(); x++ )
         {
-            double phi = ( atan2( dx.getItem( y, x ), dy.getItem( y, x ) ) * 180 / M_PI ) + 180;
+            double phi = ( atan2( dx.getItem( y, x ), dy.getItem( y, x ) ) ) + M_PI;
             directionGradient.setItem( y, x, phi );
         }
     }
 
-
+    int radius = _ambit / 2;
     for( size_t  k = 0; k < _interestPoint.size(); k++ )
     {
-        CDescriptor des(36,16);
-        des.setInterestPoint( _interestPoint[k]);
+        descriptors[k].setInterestPoint( _interestPoint[k]);
         auto peaks = pointOrientation( directionGradient, valueGradientG, _interestPoint[k],_ambit );
         for( size_t i = 0; i < peaks.size(); i++ )
         {
-            CDescriptor des(36,16);
-            for( int y = -_ambit / 2; y < _ambit / 2; y++ )
+            for( int y = -radius; y < radius; y++ )
             {
-                for( int x = -_ambit / 2; x < _ambit / 2; x++ )
+                for( int x = -radius; x < radius; x++ )
                 {
                     int yP = _interestPoint[k].y() + y;
                     int xP = _interestPoint[k].x() + x;
@@ -616,10 +614,11 @@ void CImageHandler::descriptorRotation( CImage& _myImage, int _ambit, vector<QPo
                     {
                         float vG = valueGradient.getItem( yP,xP );
                         float dG = directionGradient.getItem( yP,xP ) - peaks[i];
-                        // вычисляем индекс куда записывать значения
                         int y_Rotate = round( (x) * cos( peaks[i] ) + y * sin( peaks[i] ) );
-                        int x_Rotate = round( (y) * cos( peaks[i] ) + x * sin( peaks[i] ) );
-                        sixteenHistogramms( x, y, descriptors[k], vG, dG );
+                        int x_Rotate = round( (y) * cos( peaks[i] ) - x * sin( peaks[i] ) );
+                        if( x_Rotate < -radius || x_Rotate >= radius || y_Rotate < -radius || y_Rotate >= radius  )
+                            continue;
+                        sixteenHistogramms( x_Rotate, y_Rotate, descriptors[k], vG, dG );
                     }
                 }
             }
@@ -633,7 +632,6 @@ void CImageHandler::descriptorRotation( CImage& _myImage, int _ambit, vector<QPo
 vector<float> CImageHandler::pointOrientation(const CImage& _direction,const CImage& _value, const QPoint _point, int _ambit )
 {
     CHistogram histogramm(36);
-
     for( int y = -_ambit / 2; y < _ambit / 2; y++ )
     {
         for( int x = -_ambit / 2; x < _ambit / 2; x++ )

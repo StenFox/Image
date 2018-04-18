@@ -115,11 +115,13 @@ void MainWindow::on_showOctave_clicked()
 
 void MainWindow::on_loadImage1_clicked()
 {
-    QString fileName = QFileDialog::getOpenFileName( this,"Open Image",nullptr,"Image files (*.png *.jpg *.bmp)" );
-    QImage img;
-    img.load( fileName );
-    myImage1 = new CImage( img.height(), img.width() );
-    myImageHandler->grayScale( img ,*myImage1 );
+    //QString fileName = QFileDialog::getOpenFileName( this,"Open Image",nullptr,"Image files (*.png *.jpg *.bmp)" );
+    //QImage img;
+    //img.load( fileName );
+    //myImage1 = new CImage( img.height(), img.width() );
+    //myImageHandler->grayScale( img ,*myImage1 );
+    auto points = myImageHandler->moravec( *myImage, 1800, 3, 3, true, 500 );
+    myImageHandler->descriptorRotation( *myImage, 16, points );
 }
 
 void MainWindow::on_loadImage2_clicked()
