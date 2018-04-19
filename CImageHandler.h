@@ -57,7 +57,8 @@ public:
     // Детектор Моравика
     std::vector<QPoint> moravec( const CImage& _myImage, float _T, size_t _windowHeight, size_t _windowWidth, bool _useNonMaximum, int _colPoints );
 
-    void descriptorRotation( CImage& _myImage, int _ambit, std::vector<QPoint>& _interestPoint );
+    // Дескрипторы устойчивые к вращению
+    void descriptorRotation( CImage& _myImage, const int _ambit, const std::vector<QPoint>& _interestPoint );
 
 private:    
     // Ядро Собель по X
@@ -195,6 +196,9 @@ private:
     // Вычисление Гауссиана
     float gaussian( int _x,float _s );
 
+    // Вычисление Гауссиана
+    float gaussian( int _x, int _y, float _sigma );
+
     // Ядро фильтра гаусса
     std::vector<float> gaussianKernel( float _sigma );
 
@@ -214,10 +218,10 @@ private:
     bool filtrate( int _x, int _y, float _valueOperator, float _T, const CImage& _myImage,int _ambit, int _windowHeight, int _windowWidth, const CImage& _dx, const CImage& _dy, float _k  );
 
     // Подавление не максимальных элементов
-    std::vector<QPoint> nonMaximumPoints( std::vector<float>& _value, std::vector<QPoint> _points, int _colPoints );
+    std::vector<QPoint> nonMaximumPoints(  std::vector<float>& _value, std::vector<QPoint>& _points, const int _colPoints  );
 
     // Растояние между 2 точка
-    float distanceBetweenPoints( QPoint _p1, QPoint _p2 );
+    float distanceBetweenPoints( const QPoint& _p1, const QPoint& _p2 );
 
     // Собстевенные числа для Харрисона
     float eigenvaluesHarris( int _x, int _y, const CImage& _dx, const CImage& _dy, float _k, int _ambit  );
@@ -226,18 +230,19 @@ private:
     float minErrorShift( int _x, int _y, size_t _windowHeight, size_t _windowWidth, const CImage& _myImage );
 
     // Вычисляем дескрипторы
-    void descriptor( CImage& _myImage, int _colHistogram, int _colPin, int _ambit, std::vector<QPoint> _interestPoint );
+    void descriptor( CImage& _myImage, const int _colHistogram, const int _colPin, const int _ambit, const std::vector<QPoint>& _interestPoint );
 
     // Распределяем значения между 4 гистораммами
-    void fourHistogramms( int x,int y, CDescriptor& _des, float _vG, float _dG );
+    void fourHistogramms( const int x, const int y, CDescriptor& _des, const float _vG, const float _dG );
 
-    void sixteenHistogramms( int x,int y, CDescriptor& _des, float _vG, float _dG );
+    // Распределяем значения между 16 гистораммами
+    void sixteenHistogramms( const int x, const int y, CDescriptor& _des, const float _vG, const float _dG );
 
-    float distanceBetweenDescriptors( CDescriptor _d, CDescriptor _d1 );
+    // "Расстояние" между дескрипторами
+    float distanceBetweenDescriptors( const CDescriptor& _d, const CDescriptor& _d1 );
 
-    //void descriptorRotation( CImage& _myImage, int _ambit, std::vector<QPoint> _interestPoint );
-
-    std::vector<float> pointOrientation(const CImage& _direction,const CImage& _value, const QPoint _point, int _ambit );
+    // Оринтация точки
+    std::vector<float> pointOrientation( const CImage& _direction,const CImage& _value, const QPoint& _point, const int _radius );
 };
 
 #endif // CIMAGEHANDLER_H

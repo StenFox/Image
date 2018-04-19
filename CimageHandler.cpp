@@ -24,7 +24,6 @@ CImageHandler::CImageHandler()
 //-----------------------------------------------------------------------------------
 void CImageHandler::grayScale( QImage& _image, CImage& _myImage )
 {
-    //Q_ASSERT( _image.format() == QImage::Format_RGB32 );
     for( int i = 0; i < _image.height(); i++ )
     {
         QRgb *pixel = reinterpret_cast<QRgb*>( _image.scanLine( i ) );
@@ -78,19 +77,25 @@ void CImageHandler::magnitude( CImage& _input, const CImage& _gx, const CImage& 
 }
 
 //-----------------------------------------------------------------------------------
-void CImageHandler::gaussianBlur( float _sigma,CImage& _myImage , mtProcessingEdgeEffects _method )
+void CImageHandler::gaussianBlur( const float _sigma, CImage& _myImage, mtProcessingEdgeEffects _method )
 {
     convolutionForGauss( _sigma, _myImage, _method );
 }
 
 //-----------------------------------------------------------------------------------
-float CImageHandler::gaussian( int _x,float _sigma )
+float CImageHandler::gaussian( const int _x, const float _sigma )
 {
     return  exp( -( _x * _x ) / 2 * _sigma *_sigma ) /(sqrt( 2 * M_PI ) * _sigma );
 }
 
 //-----------------------------------------------------------------------------------
-vector<float> CImageHandler::gaussianKernel( float _sigma )
+float CImageHandler::gaussian( const int _x, const int _y, const float _sigma )
+{
+    return  exp( -( _x * _x + _y * _y ) / 2 * _sigma *_sigma ) / ( 2 * M_PI  * _sigma * _sigma );
+}
+
+//-----------------------------------------------------------------------------------
+vector<float> CImageHandler::gaussianKernel( const float _sigma )
 {
     unsigned sizeKernel = 3 * _sigma * 2;
 
@@ -126,7 +131,7 @@ vector<float> CImageHandler::gaussianKernel( float _sigma )
 }
 
 //-----------------------------------------------------------------------------------
-void CImageHandler::convolutionForGauss( float _sigma, CImage& myImage ,mtProcessingEdgeEffects _method )
+void CImageHandler::convolutionForGauss( const float _sigma, CImage& myImage ,mtProcessingEdgeEffects _method )
 {
     vector<float> temp = gaussianKernel( _sigma );
     const CMatrixV<float> Gaus1H( temp.size(),1,temp );
@@ -137,7 +142,7 @@ void CImageHandler::convolutionForGauss( float _sigma, CImage& myImage ,mtProces
 }
 
 //-----------------------------------------------------------------------------------
-vector<float> CImageHandler::resizeBilinear( const CImage& _img, int _widthOld, int _heightOld, int _widthNew, int _heightNew )
+vector<float> CImageHandler::resizeBilinear( const CImage& _img, const int _widthOld, const int _heightOld, const int _widthNew, const int _heightNew )
 {
     vector<float> temp;
     temp.resize( _widthNew * _heightNew );
@@ -203,32 +208,7 @@ CPyramid CImageHandler::gaussPyramid( const CImage& _img, int _octaves,int _scal
 }
 
 //-----------------------------------------------------------------------------------
-QImage CImageHandler::setRedPointsOfInterest( CImage& _myImage, vector<QPoint> _interestPoints )
-{
-    QImage img ( _myImage.getWidth() ,_myImage.getHeight(), QImage::Format_RGB32 );
-    _myImage.normalizeImage();
-    for ( int i = 0; i < _myImage.getHeight(); i++ )
-    {
-        QRgb *pixel = reinterpret_cast<QRgb*>( img.scanLine( i ) );
-        QRgb *end = pixel + _myImage.getHeight();
-        for ( int j =0; pixel != end; pixel++,j++ )
-        {            
-             int item = _myImage.getItem( i,j );
-             *pixel = QColor( item, item, item ).rgb();
-        }
-    }
-
-    auto red = QColor( 255, 0, 0 ).rgb();
-    for( size_t i = 0; i < _interestPoints.size(); i++)
-    {
-         img.setPixel( _interestPoints[i].x(), _interestPoints[i].y(), red );
-    }
-
-    return img;
-}
-
-//-----------------------------------------------------------------------------------
-vector<QPoint> CImageHandler::moravec(const CImage& _myImage, float _T, size_t _windowHeight, size_t _windowWidth, bool _useNonMaximum, int _colPoints  )
+vector<QPoint> CImageHandler::moravec(const CImage& _myImage, const float _T, const size_t _windowHeight, const size_t _windowWidth, const bool _useNonMaximum, const int _colPoints  )
 {
     auto offsetx = _windowWidth / 2;
     auto offsety = _windowHeight / 2;
@@ -258,7 +238,7 @@ vector<QPoint> CImageHandler::moravec(const CImage& _myImage, float _T, size_t _
 }
 
 //-----------------------------------------------------------------------------------
-float CImageHandler::minErrorShift( int _x, int _y, size_t _windowHeight, size_t _windowWidth, const CImage& _myImage )
+float CImageHandler::minErrorShift( const int _x, const int _y, const size_t _windowHeight, const size_t _windowWidth, const CImage& _myImage )
 {
     vector<float> ErrorShift;
     ErrorShift.resize( g_shiftWindow.size() );
@@ -271,7 +251,7 @@ float CImageHandler::minErrorShift( int _x, int _y, size_t _windowHeight, size_t
 }
 
 //-----------------------------------------------------------------------------------
-float CImageHandler::valueErrorShift( int _x, int _y, int _sh, size_t _windowHeight, size_t _windowWidth, const CImage& _myImage )
+float CImageHandler::valueErrorShift( const int _x, const int _y, const int _sh, const size_t _windowHeight, const size_t _windowWidth, const CImage& _myImage )
 {
     auto offsetx = _windowWidth / 2;
     auto offsety = _windowHeight / 2;
@@ -291,7 +271,7 @@ float CImageHandler::valueErrorShift( int _x, int _y, int _sh, size_t _windowHei
 }
 
 //-----------------------------------------------------------------------------------
-bool CImageHandler::filtrate( int _x, int _y, float _valueOperator, float _T, const CImage& _myImage,int _ambit, int _windowHeight, int _windowWidth, const CImage& _dx, const CImage& _dy, float _k  )
+bool CImageHandler::filtrate( const int _x, const int _y, const float _valueOperator, const float _T, const CImage& _myImage, const int _ambit, const int _windowHeight, const int _windowWidth, const CImage& _dx, const CImage& _dy, const float _k  )
 {
     // требование порогового значение
     if( _valueOperator < _T )
@@ -321,7 +301,7 @@ bool CImageHandler::filtrate( int _x, int _y, float _valueOperator, float _T, co
 }
 
 //-----------------------------------------------------------------------------------
-vector<QPoint> CImageHandler::harris( const CImage& _myImage, float _T , float _k, bool _useNonMaximum, int _colPoints )
+vector<QPoint> CImageHandler::harris( const CImage& _myImage, const float _T , const float _k, const  bool _useNonMaximum, const int _colPoints )
 {
     auto dx = convolution( g_sobelX, _myImage, mtBlackEdge );
     auto dy = convolution( g_sobelY, _myImage, mtBlackEdge );
@@ -352,7 +332,7 @@ vector<QPoint> CImageHandler::harris( const CImage& _myImage, float _T , float _
 }
 
 //-----------------------------------------------------------------------------------
-float CImageHandler::eigenvaluesHarris( int _x, int _y, const CImage& _dx, const CImage& _dy, float _k, int _ambit  )
+float CImageHandler::eigenvaluesHarris( const int _x, const int _y, const CImage& _dx, const CImage& _dy, const float _k, const int _ambit  )
 {
     float A = 0;
     float B = 0;
@@ -375,13 +355,13 @@ float CImageHandler::eigenvaluesHarris( int _x, int _y, const CImage& _dx, const
 }
 
 //-----------------------------------------------------------------------------------
-float CImageHandler::distanceBetweenPoints( QPoint _p1, QPoint _p2 )
+float CImageHandler::distanceBetweenPoints( const QPoint& _p1, const QPoint& _p2 )
 {
     return sqrt( ( ( _p1.x() - _p2.x() ) * ( _p1.x() - _p2.x() ) ) + ( ( _p1.y() - _p2.y() ) * ( _p1.y() - _p2.y() ) ) );
 }
 
 //-----------------------------------------------------------------------------------
-vector<QPoint> CImageHandler::nonMaximumPoints( vector<float>& _value, vector<QPoint> _points, int _colPoints  )
+vector<QPoint> CImageHandler::nonMaximumPoints(  vector<float>& _value, vector<QPoint>& _points, const int _colPoints  )
 {
     int r = 3;
     while( _points.size() > _colPoints )
@@ -407,11 +387,12 @@ vector<QPoint> CImageHandler::nonMaximumPoints( vector<float>& _value, vector<QP
 }
 
 //-----------------------------------------------------------------------------------
-void CImageHandler::descriptor( CImage& _myImage, int _colHistogram, int _colPin, int _ambit, vector<QPoint> _interestPoint )
+void CImageHandler::descriptor( CImage& _myImage, const int _colHistogram, const int _colPin, const int _ambit, const vector<QPoint>& _interestPoint )
 {
     vector<CDescriptor> descriptors;
     descriptors.resize( _interestPoint.size(), CDescriptor( 8, 16 ) );
 
+    // Предварительные вычисления
     auto dx = convolution( g_sobelX, _myImage, mtBlackEdge );
     auto dy = convolution( g_sobelY, _myImage, mtBlackEdge );
 
@@ -428,14 +409,15 @@ void CImageHandler::descriptor( CImage& _myImage, int _colHistogram, int _colPin
             directionGradient.setItem( y, x, phi );
         }
     }
+    // Предварительные вычисления
 
-
+    int radius = _ambit / 2;
     for( size_t  k = 0; k < _interestPoint.size(); k++ )
     {
         descriptors[k].setInterestPoint( _interestPoint[k] );
-        for( int y = -_ambit / 2; y < _ambit / 2; y++ )
+        for( int y = -radius; y < radius; y++ )
         {
-            for( int x = -_ambit / 2; x < _ambit / 2; x++ )
+            for( int x = -radius; x < radius; x++ )
             {
                 int yP = _interestPoint[k].y() + y;
                 int xP = _interestPoint[k].x() + x;
@@ -453,7 +435,7 @@ void CImageHandler::descriptor( CImage& _myImage, int _colHistogram, int _colPin
 }
 
 //-----------------------------------------------------------------------------------
-void CImageHandler::fourHistogramms( int x,int y, CDescriptor& _des, float _vG, float _dG )
+void CImageHandler::fourHistogramms( const int x, const int y, CDescriptor& _des, const float _vG, const float _dG )
 {
     int gist = 0;
     if( x < 0 && y < 0 )
@@ -469,7 +451,7 @@ void CImageHandler::fourHistogramms( int x,int y, CDescriptor& _des, float _vG, 
 
 
 //-----------------------------------------------------------------------------------
-void CImageHandler::sixteenHistogramms( int x,int y, CDescriptor& _des, float _vG, float _dG )
+void CImageHandler::sixteenHistogramms( const int x, const int y, CDescriptor& _des, const float _vG, const float _dG )
 {
     int gist = 0;
     if( x <= 3 && y <= 3 )
@@ -508,7 +490,7 @@ void CImageHandler::sixteenHistogramms( int x,int y, CDescriptor& _des, float _v
 }
 
 //-----------------------------------------------------------------------------------
-float CImageHandler::distanceBetweenDescriptors( CDescriptor _d, CDescriptor _d1 )
+float CImageHandler::distanceBetweenDescriptors( const CDescriptor& _d, const CDescriptor& _d1 )
 {
     Q_ASSERT( _d.getColHistogramms() == _d1.getColHistogramms() );
     Q_ASSERT( _d.getHistograms(0).getColPin() == _d1.getHistograms(0).getColPin() );
@@ -531,7 +513,7 @@ float CImageHandler::distanceBetweenDescriptors( CDescriptor _d, CDescriptor _d1
 }
 
 //-----------------------------------------------------------------------------------
-vector<pair<CDescriptor,CDescriptor>> CImageHandler::imageComparison( CImage& _myImage1,CImage& _myImage2 )
+vector<pair<CDescriptor,CDescriptor>> CImageHandler::imageComparison( CImage& _myImage1, CImage& _myImage2 )
 {
     descriptor( _myImage1, 16, 8, 16, moravec( _myImage1, 1800, 3, 3, false, 0 ) );
     descriptor( _myImage2, 16, 8, 16, moravec( _myImage2, 1800, 3, 3, false, 0 ) );
@@ -572,7 +554,7 @@ vector<pair<CDescriptor,CDescriptor>> CImageHandler::imageComparison( CImage& _m
 
 
 //-----------------------------------------------------------------------------------
-void CImageHandler::descriptorRotation( CImage& _myImage, int _ambit, vector<QPoint>& _interestPoint )
+void CImageHandler::descriptorRotation( CImage& _myImage, const int _ambit, const vector<QPoint>& _interestPoint )
 {
     vector<CDescriptor> descriptors;
     descriptors.resize( _interestPoint.size(), CDescriptor( 8, 16 ) );
@@ -582,9 +564,6 @@ void CImageHandler::descriptorRotation( CImage& _myImage, int _ambit, vector<QPo
 
     CImage valueGradient( _myImage.getHeight(),_myImage.getWidth() );
     magnitude( valueGradient, dx, dy );
-    CImage valueGradientG = valueGradient;
-
-    gaussianBlur( 1.2, valueGradientG, mtBlackEdge );
 
     CImage directionGradient( _myImage.getHeight(),_myImage.getWidth() );
 
@@ -601,7 +580,7 @@ void CImageHandler::descriptorRotation( CImage& _myImage, int _ambit, vector<QPo
     for( size_t  k = 0; k < _interestPoint.size(); k++ )
     {
         descriptors[k].setInterestPoint( _interestPoint[k]);
-        auto peaks = pointOrientation( directionGradient, valueGradientG, _interestPoint[k],_ambit );
+        auto peaks = pointOrientation( directionGradient, valueGradient, _interestPoint[k],radius );
         for( size_t i = 0; i < peaks.size(); i++ )
         {
             for( int y = -radius; y < radius; y++ )
@@ -629,19 +608,21 @@ void CImageHandler::descriptorRotation( CImage& _myImage, int _ambit, vector<QPo
 }
 
 //-----------------------------------------------------------------------------------
-vector<float> CImageHandler::pointOrientation(const CImage& _direction,const CImage& _value, const QPoint _point, int _ambit )
+vector<float> CImageHandler::pointOrientation(const CImage& _direction,const CImage& _value, const QPoint& _point, const int _radius )
 {
+    const float sigma = 10;
     CHistogram histogramm(36);
-    for( int y = -_ambit / 2; y < _ambit / 2; y++ )
+    for( int y = -_radius; y < _radius; y++ )
     {
-        for( int x = -_ambit / 2; x < _ambit / 2; x++ )
+        for( int x = -_radius; x < _radius; x++ )
         {
             int yP = _point.y() + y;
             int xP = _point.x() + x;
             if( _direction.isValid( yP, xP ) && _value.isValid( yP, xP ) )
             {
                 float vG = _value.getItem( yP,xP );
-                float dG = _direction.getItem( yP,xP );
+                // домнажаем на значение гусса вычисленное в координатной системе окрестности
+                float dG = _direction.getItem( yP,xP ) * gaussian( x, y, 2 * sigma );
                 histogramm.addValueinPin( vG, dG );
             }
         }

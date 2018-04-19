@@ -4,12 +4,12 @@
 CHistogram::CHistogram( int _colPin )
 {
     m_pin = _colPin;
-    m_histogramms.resize(m_pin,0);
+    m_histogramms.resize( m_pin );
 }
 
 CHistogram::~CHistogram()
 {
-
+    m_histogramms.clear();
 }
 
 void CHistogram::addValueinPin( float _value, float _phi )
