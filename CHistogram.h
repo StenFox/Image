@@ -7,6 +7,7 @@
 class CHistogram
 {
 public:
+    CHistogram();
     CHistogram( int _colPin );
     ~CHistogram();
     void addValueinPin( float _value, float _phi );
@@ -18,6 +19,12 @@ public:
     float getPin(int _i)
     {
         return m_histogramms[_i];
+    }
+
+    void setPin( const int _colPin )
+    {
+        m_pin = _colPin;
+        m_histogramms.resize( _colPin, 0 );
     }
 
     void normalize( float _max );

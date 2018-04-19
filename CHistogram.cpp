@@ -1,6 +1,11 @@
 #include "CHistogram.h"
 #include <cmath>
 
+CHistogram::CHistogram( )
+{
+
+}
+
 CHistogram::CHistogram( int _colPin )
 {
     m_pin = _colPin;
@@ -9,6 +14,7 @@ CHistogram::CHistogram( int _colPin )
 
 CHistogram::~CHistogram()
 {
+    m_pin = 0;
     m_histogramms.clear();
 }
 

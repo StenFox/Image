@@ -557,7 +557,7 @@ vector<pair<CDescriptor,CDescriptor>> CImageHandler::imageComparison( CImage& _m
 void CImageHandler::descriptorRotation( CImage& _myImage, const int _ambit, const vector<QPoint>& _interestPoint )
 {
     vector<CDescriptor> descriptors;
-    descriptors.resize( _interestPoint.size(), CDescriptor( 8, 16 ) );
+    descriptors.resize( _interestPoint.size() );
 
     auto dx = convolution( g_sobelX, _myImage, mtBlackEdge );
     auto dy = convolution( g_sobelY, _myImage, mtBlackEdge );
@@ -580,6 +580,7 @@ void CImageHandler::descriptorRotation( CImage& _myImage, const int _ambit, cons
     for( size_t  k = 0; k < _interestPoint.size(); k++ )
     {
         descriptors[k].setInterestPoint( _interestPoint[k]);
+        descriptors[k].setColHistogramm( 8, 16 );
         auto peaks = pointOrientation( directionGradient, valueGradient, _interestPoint[k],radius );
         for( size_t i = 0; i < peaks.size(); i++ )
         {
@@ -611,7 +612,7 @@ void CImageHandler::descriptorRotation( CImage& _myImage, const int _ambit, cons
 vector<float> CImageHandler::pointOrientation(const CImage& _direction,const CImage& _value, const QPoint& _point, const int _radius )
 {
     const float sigma = 10;
-    CHistogram histogramm(36);
+    CHistogram *histogramm = new CHistogram(36);
     for( int y = -_radius; y < _radius; y++ )
     {
         for( int x = -_radius; x < _radius; x++ )
@@ -623,9 +624,9 @@ vector<float> CImageHandler::pointOrientation(const CImage& _direction,const CIm
                 float vG = _value.getItem( yP,xP );
                 // домнажаем на значение гусса вычисленное в координатной системе окрестности
                 float dG = _direction.getItem( yP,xP ) * gaussian( x, y, 2 * sigma );
-                histogramm.addValueinPin( vG, dG );
+                histogramm->addValueinPin( vG, dG );
             }
         }
     }
-    return histogramm.getPeaks();
+    return histogramm->getPeaks();
 }

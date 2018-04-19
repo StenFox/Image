@@ -32,6 +32,16 @@ void CDescriptor::setInterestPoint( QPoint _interestPoint )
      m_intrestPoint = _interestPoint;
 }
 
+void CDescriptor::setColHistogramm( const int _colPin, const int _colHistogramm )
+{
+     m_descriptor.resize( _colHistogramm );
+     m_pin = _colPin;
+     for( int i = 0; i < _colHistogramm; i++ )
+     {
+         m_descriptor[i].setPin( _colPin );
+     }
+}
+
 void CDescriptor::normalize()
 {
     float l2 = 0;

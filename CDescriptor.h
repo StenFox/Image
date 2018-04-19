@@ -13,6 +13,7 @@ public:
     CDescriptor( QPoint _interestPoint ,int _colPin, int _colHistogramm );
     void addValueInHistogramm( float _value, float _phi, int _histogramm );
     void setInterestPoint( QPoint _interestPoint );
+    void setColHistogramm( const int _colPin, const int _colHistogramm );
     int getColHistogramms() const
     {
         return m_descriptor.size();
