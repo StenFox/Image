@@ -13,6 +13,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->M_EdgeComboBox->insertItem( 1, "Копирование границ" );
     ui->M_EdgeComboBox->insertItem( 2, "Тор" );
     myImageHandler = new CImageHandler();
+    myImage1 = nullptr;
+    myImage2 = nullptr;
 }
 
 MainWindow::~MainWindow()
@@ -46,17 +48,11 @@ void MainWindow::on_GaussBlurButton_clicked()
 void MainWindow::on_SobelButton_clicked()
 {
     myImageHandler->sobel( ( mtProcessingEdgeEffects )ui->M_EdgeComboBox->currentIndex(), *myImage );
-    ////ui->label->setPixmap( QPixmap::fromImage( myImage->getImage() ) );
     ui->graphicsView->scene()->clear();
     QGraphicsScene *scene = new QGraphicsScene();
     QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage(myImage->getImage()));
     scene->addItem(item);
     ui->graphicsView->setScene(scene);
-}
-
-void MainWindow::on_ReloadImageButton_clicked()
-{
-
 }
 
 void MainWindow::on_pushButton_clicked()
@@ -115,26 +111,32 @@ void MainWindow::on_showOctave_clicked()
 
 void MainWindow::on_loadImage1_clicked()
 {
-    //QString fileName = QFileDialog::getOpenFileName( this,"Open Image",nullptr,"Image files (*.png *.jpg *.bmp)" );
-    //QImage img;
-    //img.load( fileName );
-    //myImage1 = new CImage( img.height(), img.width() );
-    //myImageHandler->grayScale( img ,*myImage1 );
-    auto points = myImageHandler->moravec( *myImage, 1800, 3, 3, true, 500 );
-    myImageHandler->descriptorRotation( *myImage, 16, points );
+    QString fileName = QFileDialog::getOpenFileName( this,"Open Image",nullptr,"Image files (*.png *.jpg *.bmp)" );
+    if(!fileName.isEmpty())
+    {
+        QImage img;
+        img.load( fileName );
+        myImage1 = new CImage( img.height(), img.width() );
+        myImageHandler->grayScale( img ,*myImage1 );
+    }
 }
 
 void MainWindow::on_loadImage2_clicked()
 {
     QString fileName = QFileDialog::getOpenFileName( this,"Open Image",nullptr,"Image files (*.png *.jpg *.bmp)" );
-    QImage img;
-    img.load( fileName );
-    myImage2 = new CImage( img.height(), img.width() );
-    myImageHandler->grayScale( img ,*myImage2 );
+    if(!fileName.isEmpty())
+    {
+        QImage img;
+        img.load( fileName );
+        myImage2 = new CImage( img.height(), img.width() );
+        myImageHandler->grayScale( img ,*myImage2 );
+    }
 }
 
 void MainWindow::on_showImages_clicked()
 {
+    if( myImage1 == nullptr && myImage2 == nullptr )
+        return;
     QGraphicsScene *scene = new QGraphicsScene( 0, 0, myImage1->getWidth() + myImage2->getWidth(), ui->graphicsView->height() );
     QGraphicsPixmapItem* item1 = new QGraphicsPixmapItem( QPixmap::fromImage( myImage1->getImage() ) );
     QGraphicsPixmapItem* item2 = new QGraphicsPixmapItem( QPixmap::fromImage( myImage2->getImage() ) );
@@ -142,13 +144,59 @@ void MainWindow::on_showImages_clicked()
     scene->addItem( item1 );
     scene->addItem( item2 );
 
-    auto des = myImageHandler->imageComparison( *myImage1, *myImage2 );
+    auto pointsImageFirst = myImageHandler->moravec( *myImage1, 5000, 3, 3, false, 0 );
+    myImageHandler->descriptor( *myImage1, 16, 8, 16, pointsImageFirst );
+
+    auto pointsImageSecond = myImageHandler->moravec( *myImage2, 5000, 3, 3, false, 0 );
+    myImageHandler->descriptor( *myImage2, 16, 8, 16, pointsImageSecond );
+
+    auto des = myImageHandler->imageComparison( *myImage1, *myImage2, true, 0.9 );
 
     QPen pen;
     pen.setBrush( QBrush() );
+
     pen.setColor( QColor(255,0,0));
     for( size_t i = 0; i< des.size(); i++)
     {
+        auto r = rand() % 255 + 1;
+        auto g = rand() % 255 + 1;
+        auto b = rand() % 255 + 1;
+        pen.setColor( QColor(r,g,b));
+        scene->addLine(des[i].first.getInterestPoint().x(),des[i].first.getInterestPoint().y(),des[i].second.getInterestPoint().x() + myImage1->getWidth() ,des[i].second.getInterestPoint().y(),pen );
+    }
+
+    ui->graphicsView->setScene( scene );
+}
+
+void MainWindow::on_CompareImageRotate_clicked()
+{
+    if( myImage1 == nullptr && myImage2 == nullptr )
+        return;
+    QGraphicsScene *scene = new QGraphicsScene( 0, 0, myImage1->getWidth() + myImage2->getWidth(), ui->graphicsView->height() );
+    QGraphicsPixmapItem* item1 = new QGraphicsPixmapItem( QPixmap::fromImage( myImage1->getImage() ) );
+    QGraphicsPixmapItem* item2 = new QGraphicsPixmapItem( QPixmap::fromImage( myImage2->getImage() ) );
+    item2->setOffset( myImage1->getWidth(),0 );
+    scene->addItem( item1 );
+    scene->addItem( item2 );
+
+    auto pointsImageFirst = myImageHandler->moravec( *myImage1, 5000, 3, 3, false, 0 );
+    myImageHandler->descriptorRotation( *myImage1, 16, pointsImageFirst );
+
+    auto pointsImageSecond = myImageHandler->moravec( *myImage2, 5000, 3, 3, false, 0 );
+    myImageHandler->descriptorRotation( *myImage2, 16, pointsImageSecond );
+
+    auto des = myImageHandler->imageComparison( *myImage1, *myImage2, true, 0.9 );
+
+    QPen pen;
+    pen.setBrush( QBrush() );
+
+    pen.setColor( QColor(255,0,0));
+    for( size_t i = 0; i< des.size(); i++)
+    {
+        auto r = rand() % 255 + 1;
+        auto g = rand() % 255 + 1;
+        auto b = rand() % 255 + 1;
+        pen.setColor( QColor(r,g,b));
         scene->addLine(des[i].first.getInterestPoint().x(),des[i].first.getInterestPoint().y(),des[i].second.getInterestPoint().x() + myImage1->getWidth() ,des[i].second.getInterestPoint().y(),pen );
     }
 

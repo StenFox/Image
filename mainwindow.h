@@ -25,8 +25,6 @@ private slots:
 
     void on_SobelButton_clicked();
 
-    void on_ReloadImageButton_clicked();
-
     void on_pushButton_clicked();
 
     void on_MoravecButton_clicked();
@@ -40,6 +38,8 @@ private slots:
     void on_loadImage2_clicked();
 
     void on_showImages_clicked();
+
+    void on_CompareImageRotate_clicked();
 
 private:
     CImage* myImage;

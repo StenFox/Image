@@ -1,6 +1,5 @@
 #include "CImageHandler.h"
 #include "CImageKernels.h"
-#include "CHistogram.h"
 
 using namespace  std;
 
@@ -77,25 +76,25 @@ void CImageHandler::magnitude( CImage& _input, const CImage& _gx, const CImage& 
 }
 
 //-----------------------------------------------------------------------------------
-void CImageHandler::gaussianBlur( const float _sigma, CImage& _myImage, mtProcessingEdgeEffects _method )
+void CImageHandler::gaussianBlur( float _sigma, CImage& _myImage, mtProcessingEdgeEffects _method )
 {
     convolutionForGauss( _sigma, _myImage, _method );
 }
 
 //-----------------------------------------------------------------------------------
-float CImageHandler::gaussian( const int _x, const float _sigma )
+float CImageHandler::gaussian( int _x, float _sigma )
 {
     return  exp( -( _x * _x ) / 2 * _sigma *_sigma ) /(sqrt( 2 * M_PI ) * _sigma );
 }
 
 //-----------------------------------------------------------------------------------
-float CImageHandler::gaussian( const int _x, const int _y, const float _sigma )
+float CImageHandler::gaussian( int _x, int _y, float _sigma )
 {
     return  exp( -( _x * _x + _y * _y ) / 2 * _sigma *_sigma ) / ( 2 * M_PI  * _sigma * _sigma );
 }
 
 //-----------------------------------------------------------------------------------
-vector<float> CImageHandler::gaussianKernel( const float _sigma )
+vector<float> CImageHandler::gaussianKernel( float _sigma )
 {
     unsigned sizeKernel = 3 * _sigma * 2;
 
@@ -131,7 +130,7 @@ vector<float> CImageHandler::gaussianKernel( const float _sigma )
 }
 
 //-----------------------------------------------------------------------------------
-void CImageHandler::convolutionForGauss( const float _sigma, CImage& myImage ,mtProcessingEdgeEffects _method )
+void CImageHandler::convolutionForGauss( float _sigma, CImage& myImage ,mtProcessingEdgeEffects _method )
 {
     vector<float> temp = gaussianKernel( _sigma );
     const CMatrixV<float> Gaus1H( temp.size(),1,temp );
@@ -142,7 +141,7 @@ void CImageHandler::convolutionForGauss( const float _sigma, CImage& myImage ,mt
 }
 
 //-----------------------------------------------------------------------------------
-vector<float> CImageHandler::resizeBilinear( const CImage& _img, const int _widthOld, const int _heightOld, const int _widthNew, const int _heightNew )
+vector<float> CImageHandler::resizeBilinear( const CImage& _img, int _widthOld, int _heightOld, int _widthNew, int _heightNew )
 {
     vector<float> temp;
     temp.resize( _widthNew * _heightNew );
@@ -208,7 +207,7 @@ CPyramid CImageHandler::gaussPyramid( const CImage& _img, int _octaves,int _scal
 }
 
 //-----------------------------------------------------------------------------------
-vector<QPoint> CImageHandler::moravec(const CImage& _myImage, const float _T, const size_t _windowHeight, const size_t _windowWidth, const bool _useNonMaximum, const int _colPoints  )
+vector<QPoint> CImageHandler::moravec(const CImage& _myImage, float _T, size_t _windowHeight, size_t _windowWidth, bool _useNonMaximum, int _colPoints  )
 {
     auto offsetx = _windowWidth / 2;
     auto offsety = _windowHeight / 2;
@@ -238,7 +237,7 @@ vector<QPoint> CImageHandler::moravec(const CImage& _myImage, const float _T, co
 }
 
 //-----------------------------------------------------------------------------------
-float CImageHandler::minErrorShift( const int _x, const int _y, const size_t _windowHeight, const size_t _windowWidth, const CImage& _myImage )
+float CImageHandler::minErrorShift( int _x, int _y, size_t _windowHeight, size_t _windowWidth, const CImage& _myImage )
 {
     vector<float> ErrorShift;
     ErrorShift.resize( g_shiftWindow.size() );
@@ -251,7 +250,7 @@ float CImageHandler::minErrorShift( const int _x, const int _y, const size_t _wi
 }
 
 //-----------------------------------------------------------------------------------
-float CImageHandler::valueErrorShift( const int _x, const int _y, const int _sh, const size_t _windowHeight, const size_t _windowWidth, const CImage& _myImage )
+float CImageHandler::valueErrorShift( int _x, int _y, int _sh, size_t _windowHeight, size_t _windowWidth, const CImage& _myImage )
 {
     auto offsetx = _windowWidth / 2;
     auto offsety = _windowHeight / 2;
@@ -271,7 +270,7 @@ float CImageHandler::valueErrorShift( const int _x, const int _y, const int _sh,
 }
 
 //-----------------------------------------------------------------------------------
-bool CImageHandler::filtrate( const int _x, const int _y, const float _valueOperator, const float _T, const CImage& _myImage, const int _ambit, const int _windowHeight, const int _windowWidth, const CImage& _dx, const CImage& _dy, const float _k  )
+bool CImageHandler::filtrate( int _x, int _y, float _valueOperator, float _T, const CImage& _myImage, int _ambit, int _windowHeight, int _windowWidth, const CImage& _dx, const CImage& _dy, float _k  )
 {
     // требование порогового значение
     if( _valueOperator < _T )
@@ -301,7 +300,7 @@ bool CImageHandler::filtrate( const int _x, const int _y, const float _valueOper
 }
 
 //-----------------------------------------------------------------------------------
-vector<QPoint> CImageHandler::harris( const CImage& _myImage, const float _T , const float _k, const  bool _useNonMaximum, const int _colPoints )
+vector<QPoint> CImageHandler::harris( const CImage& _myImage, float _T , float _k, bool _useNonMaximum, int _colPoints )
 {
     auto dx = convolution( g_sobelX, _myImage, mtBlackEdge );
     auto dy = convolution( g_sobelY, _myImage, mtBlackEdge );
@@ -361,7 +360,7 @@ float CImageHandler::distanceBetweenPoints( const QPoint& _p1, const QPoint& _p2
 }
 
 //-----------------------------------------------------------------------------------
-vector<QPoint> CImageHandler::nonMaximumPoints(  vector<float>& _value, vector<QPoint>& _points, const int _colPoints  )
+vector<QPoint> CImageHandler::nonMaximumPoints(  vector<float>& _value, vector<QPoint>& _points, int _colPoints  )
 {
     int r = 3;
     while( _points.size() > _colPoints )
@@ -387,10 +386,10 @@ vector<QPoint> CImageHandler::nonMaximumPoints(  vector<float>& _value, vector<Q
 }
 
 //-----------------------------------------------------------------------------------
-void CImageHandler::descriptor( CImage& _myImage, const int _colHistogram, const int _colPin, const int _ambit, const vector<QPoint>& _interestPoint )
+void CImageHandler::descriptor( CImage& _myImage, int _colHistogram, int _colPin, const int _ambit, const vector<QPoint>& _interestPoint )
 {
     vector<CDescriptor> descriptors;
-    descriptors.resize( _interestPoint.size(), CDescriptor( 8, 16 ) );
+    descriptors.resize( _interestPoint.size(), CDescriptor( _colPin, 16 ) );
 
     // Предварительные вычисления
     auto dx = convolution( g_sobelX, _myImage, mtBlackEdge );
@@ -429,7 +428,7 @@ void CImageHandler::descriptor( CImage& _myImage, const int _colHistogram, const
                 }
             }
         }
-        descriptors[k].normalize();
+        descriptors[k].normalize( 0.2 );
     }
     _myImage.setDesriptors( descriptors );
 }
@@ -448,7 +447,6 @@ void CImageHandler::fourHistogramms( const int x, const int y, CDescriptor& _des
         gist = 1;
     _des.addValueInHistogramm( _vG, _dG, gist );
 }
-
 
 //-----------------------------------------------------------------------------------
 void CImageHandler::sixteenHistogramms( const int x, const int y, CDescriptor& _des, const float _vG, const float _dG )
@@ -490,33 +488,35 @@ void CImageHandler::sixteenHistogramms( const int x, const int y, CDescriptor& _
 }
 
 //-----------------------------------------------------------------------------------
-float CImageHandler::distanceBetweenDescriptors( const CDescriptor& _d, const CDescriptor& _d1 )
+float CImageHandler::distanceBetweenDescriptors( const CDescriptor& _d1, const CDescriptor& _d2 )
 {
-    Q_ASSERT( _d.getColHistogramms() == _d1.getColHistogramms() );
-    Q_ASSERT( _d.getHistograms(0).getColPin() == _d1.getHistograms(0).getColPin() );
+    Q_ASSERT( _d1.getColHistogramms() == _d2.getColHistogramms() );
+    Q_ASSERT( _d1.getHistograms(0).getColPin() == _d2.getHistograms(0).getColPin() );
 
     float Edistance = 0;
-    for( int i = 0; i < _d.getColHistogramms(); i++)
+    for( int i = 0; i < _d1.getColHistogramms(); i++)
     {
-        int colPin = _d.getHistograms(i).getColPin();
-
+        int colPin = _d1.getHistograms(i).getColPin();
         for( int j = 0; j < colPin; j++ )
         {
             float difference;
-            difference = _d.getHistograms(i).getPin(j) - _d1.getHistograms(i).getPin(j);
+            difference = _d1.getHistograms(i).getValueinPin(j) - _d2.getHistograms(i).getValueinPin(j);
             difference *= difference;
             Edistance += difference;
         }
     }
-    Edistance = sqrt(Edistance);
+    Edistance = sqrt( Edistance );
     return Edistance;
 }
 
 //-----------------------------------------------------------------------------------
-vector<pair<CDescriptor,CDescriptor>> CImageHandler::imageComparison( CImage& _myImage1, CImage& _myImage2 )
+vector<pair<CDescriptor,CDescriptor>> CImageHandler::imageComparison( CImage& _myImage1, CImage& _myImage2, bool _discardPoints, float _threshold )
 {
-    descriptor( _myImage1, 16, 8, 16, moravec( _myImage1, 1800, 3, 3, false, 0 ) );
-    descriptor( _myImage2, 16, 8, 16, moravec( _myImage2, 1800, 3, 3, false, 0 ) );
+    //descriptor( _myImage1, 16, 8, 16, moravec( _myImage1, 5000, 3, 3, false, 0 ) );
+    //descriptor( _myImage2, 16, 8, 16, moravec( _myImage2, 5000, 3, 3, false, 0 ) );
+
+    //descriptorRotation( _myImage1, 16, moravec( _myImage1, 5000, 3, 3, false, 0 ) );
+    //descriptorRotation( _myImage2, 16, moravec( _myImage2, 5000, 3, 3, false, 0 ) );
 
     auto des1 = _myImage1.getDescriptors();
     auto des2 = _myImage2.getDescriptors();
@@ -524,8 +524,8 @@ vector<pair<CDescriptor,CDescriptor>> CImageHandler::imageComparison( CImage& _m
     vector<pair<CDescriptor,CDescriptor>> sop;
     for( size_t i = 0; i < des1.size(); i++ )
     {
-       float min = 99999999999;
-       float min2 = 99999999999;
+       float min = std::numeric_limits<float>::max();
+       float min2 = min;
        int jmin = 0;
        for( size_t j = 0; j < des2.size(); j++ )
        {
@@ -535,29 +535,36 @@ vector<pair<CDescriptor,CDescriptor>> CImageHandler::imageComparison( CImage& _m
               jmin = j;
               min = Edistance;
           }
-          if( min2 < Edistance && min2 > min )
+          if( min2 > Edistance && Edistance != min && min2 > min  )
           {
               min2 = Edistance;
           }
           if( min == 0 )
               break;
        }
-       if( min / min2 > 0.8 )
+       if( min / min2 > _threshold )
            continue;
-       sop.push_back( make_pair( des1[i], des2[jmin]) );
-       des1.erase( des1.begin() + i );
-       des2.erase( des2.begin() + jmin );
-       i--;
+       if( _discardPoints )
+       {
+           sop.push_back( make_pair( des1[i], des2[jmin]) );
+           des1.erase( des1.begin() + i );
+           des2.erase( des2.begin() + jmin );
+           i--;
+       }
+       else
+       {
+           sop.push_back( make_pair( des1[i], des2[jmin]) );
+       }
     }
     return sop;
 }
 
 
 //-----------------------------------------------------------------------------------
-void CImageHandler::descriptorRotation( CImage& _myImage, const int _ambit, const vector<QPoint>& _interestPoint )
+void CImageHandler::descriptorRotation( CImage& _myImage, int _ambit, const vector<QPoint>& _interestPoint )
 {
     vector<CDescriptor> descriptors;
-    descriptors.resize( _interestPoint.size() );
+    descriptors.resize( _interestPoint.size(), CDescriptor( 8,16 ) );
 
     auto dx = convolution( g_sobelX, _myImage, mtBlackEdge );
     auto dy = convolution( g_sobelY, _myImage, mtBlackEdge );
@@ -579,9 +586,8 @@ void CImageHandler::descriptorRotation( CImage& _myImage, const int _ambit, cons
     int radius = _ambit / 2;
     for( size_t  k = 0; k < _interestPoint.size(); k++ )
     {
-        descriptors[k].setInterestPoint( _interestPoint[k]);
-        descriptors[k].setColHistogramm( 8, 16 );
-        auto peaks = pointOrientation( directionGradient, valueGradient, _interestPoint[k],radius );
+        descriptors[k].setInterestPoint( _interestPoint[k] );
+        auto peaks = pointOrientation( directionGradient, valueGradient, _interestPoint[k], radius );
         for( size_t i = 0; i < peaks.size(); i++ )
         {
             for( int y = -radius; y < radius; y++ )
@@ -593,7 +599,8 @@ void CImageHandler::descriptorRotation( CImage& _myImage, const int _ambit, cons
                     if( _myImage.isValid(  yP,xP ) )
                     {
                         float vG = valueGradient.getItem( yP,xP );
-                        float dG = directionGradient.getItem( yP,xP ) - peaks[i];
+                        float dG = directionGradient.getItem( yP,xP ) + 2 * M_PI -  peaks[i];
+                        dG = fmod( dG, 2 * M_PI );
                         int y_Rotate = round( (x) * cos( peaks[i] ) + y * sin( peaks[i] ) );
                         int x_Rotate = round( (y) * cos( peaks[i] ) - x * sin( peaks[i] ) );
                         if( x_Rotate < -radius || x_Rotate >= radius || y_Rotate < -radius || y_Rotate >= radius  )
@@ -602,17 +609,20 @@ void CImageHandler::descriptorRotation( CImage& _myImage, const int _ambit, cons
                     }
                 }
             }
-            descriptors[k].normalize();
         }
+        descriptors[k].normalize( 0.2 );
     }
     _myImage.setDesriptors( descriptors );
 }
 
 //-----------------------------------------------------------------------------------
-vector<float> CImageHandler::pointOrientation(const CImage& _direction,const CImage& _value, const QPoint& _point, const int _radius )
+vector<float> CImageHandler::pointOrientation( const CImage& _direction,const CImage& _value, const QPoint& _point, int _radius )
 {
-    const float sigma = 10;
-    CHistogram *histogramm = new CHistogram(36);
+    const float sigma = 15;
+    // Здесь происходит порча памяти, никак не могу понять как это связанно с ~CHistogram()
+    // Heap block at 19913FE8 modified at 19914080 past requested size of 90
+    // Работает всё верно, но что-то здесь не то
+    CHistogram histogramm( 36 );
     for( int y = -_radius; y < _radius; y++ )
     {
         for( int x = -_radius; x < _radius; x++ )
@@ -621,12 +631,11 @@ vector<float> CImageHandler::pointOrientation(const CImage& _direction,const CIm
             int xP = _point.x() + x;
             if( _direction.isValid( yP, xP ) && _value.isValid( yP, xP ) )
             {
-                float vG = _value.getItem( yP,xP );
-                // домнажаем на значение гусса вычисленное в координатной системе окрестности
-                float dG = _direction.getItem( yP,xP ) * gaussian( x, y, 2 * sigma );
-                histogramm->addValueinPin( vG, dG );
+                float vG = _value.getItem( yP,xP ) * gaussian( x, y, 2 * sigma );
+                float dG = _direction.getItem( yP,xP );
+                histogramm.addValueinPin( vG, dG );
             }
         }
     }
-    return histogramm->getPeaks();
+    return histogramm.getPeaks();
 }

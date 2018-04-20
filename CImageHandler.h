@@ -3,6 +3,7 @@
 #include "CImage.h"
 #include "CPyramid.h"
 #include "CDescriptor.h"
+#include "CHistogram.h"
 #include <QDebug>
 #include <QPoint>
 #include <math.h>
@@ -49,7 +50,7 @@ public:
     // Оператор Робертса
     void robert( mtProcessingEdgeEffects _method, CImage& _image );
 
-    std::vector<std::pair<CDescriptor,CDescriptor>> imageComparison( CImage& _myImage1,CImage& _myImage2 );
+    std::vector<std::pair<CDescriptor,CDescriptor>> imageComparison( CImage& _myImage1, CImage& _myImage2, bool _discardPoints, float _threshold );
 
     // Детектор Харриса
     std::vector<QPoint> harris( const CImage& _myImage, float _T , float _k,bool _useNonMaximum, int _colPonts );
@@ -57,8 +58,11 @@ public:
     // Детектор Моравика
     std::vector<QPoint> moravec( const CImage& _myImage, float _T, size_t _windowHeight, size_t _windowWidth, bool _useNonMaximum, int _colPoints );
 
+    // Вычисляем дескрипторы
+    void descriptor( CImage& _myImage, int _colHistogram, int _colPin, int _ambit, const std::vector<QPoint>& _interestPoint );
+
     // Дескрипторы устойчивые к вращению
-    void descriptorRotation( CImage& _myImage, const int _ambit, const std::vector<QPoint>& _interestPoint );
+    void descriptorRotation( CImage& _myImage, int _ambit, const std::vector<QPoint>& _interestPoint );
 
 private:    
     // Ядро Собель по X
@@ -229,20 +233,17 @@ private:
     // Минимальная ошибка при сдвигах в 8 направлениях
     float minErrorShift( int _x, int _y, size_t _windowHeight, size_t _windowWidth, const CImage& _myImage );
 
-    // Вычисляем дескрипторы
-    void descriptor( CImage& _myImage, const int _colHistogram, const int _colPin, const int _ambit, const std::vector<QPoint>& _interestPoint );
-
     // Распределяем значения между 4 гистораммами
-    void fourHistogramms( const int x, const int y, CDescriptor& _des, const float _vG, const float _dG );
+    void fourHistogramms( const int x, const int y, CDescriptor& _des, float _vG, float _dG );
 
     // Распределяем значения между 16 гистораммами
-    void sixteenHistogramms( const int x, const int y, CDescriptor& _des, const float _vG, const float _dG );
+    void sixteenHistogramms( const int x, const int y, CDescriptor& _des,float _vG, float _dG );
 
     // "Расстояние" между дескрипторами
     float distanceBetweenDescriptors( const CDescriptor& _d, const CDescriptor& _d1 );
 
     // Оринтация точки
-    std::vector<float> pointOrientation( const CImage& _direction,const CImage& _value, const QPoint& _point, const int _radius );
+    std::vector<float> pointOrientation( const CImage& _direction,const CImage& _value, const QPoint& _point, int _radius );
 };
 
 #endif // CIMAGEHANDLER_H

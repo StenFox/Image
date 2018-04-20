@@ -7,13 +7,17 @@
 class CDescriptor
 {
 public:
-    CDescriptor();
-    ~CDescriptor();
     CDescriptor( int _colPin, int _colHistogramm );
-    CDescriptor( QPoint _interestPoint ,int _colPin, int _colHistogramm );
+    CDescriptor( const QPoint& _interestPoint, int _colPin, int _colHistogramm );
+    CDescriptor( CDescriptor&& _des) = default;
+    CDescriptor( const CDescriptor& _des) = default;
+    CDescriptor &operator=(CDescriptor&& _des) = default;
+    CDescriptor &operator=(const CDescriptor& _des) = default;
+
     void addValueInHistogramm( float _value, float _phi, int _histogramm );
-    void setInterestPoint( QPoint _interestPoint );
-    void setColHistogramm( const int _colPin, const int _colHistogramm );
+    void setInterestPoint( const QPoint& _interestPoint );
+    void setColHistogramm( int _colPin, int _colHistogramm );
+
     int getColHistogramms() const
     {
         return m_descriptor.size();
@@ -29,8 +33,7 @@ public:
         return m_intrestPoint;
     }
 
-    void normalize();
-
+    void normalize( float _value );
 private:
     QPoint m_intrestPoint;
     int m_pin;

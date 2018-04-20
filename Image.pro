@@ -29,10 +29,10 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     CImage.cpp \
-    CimageHandler.cpp \
     CPyramid.cpp \
     CDescriptor.cpp \
-    CHistogram.cpp
+    CHistogram.cpp \
+    CImageHandler.cpp
 
 HEADERS += \
         mainwindow.h \

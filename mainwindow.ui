@@ -88,7 +88,7 @@
       <x>830</x>
       <y>80</y>
       <width>161</width>
-      <height>341</height>
+      <height>501</height>
      </rect>
     </property>
     <property name="currentIndex">
@@ -369,7 +369,7 @@
     </widget>
     <widget class="QWidget" name="tab">
      <attribute name="title">
-      <string>4Л</string>
+      <string>4Л-5Л</string>
      </attribute>
      <widget class="QPushButton" name="loadImage1">
       <property name="geometry">
@@ -377,37 +377,53 @@
         <x>10</x>
         <y>10</y>
         <width>131</width>
-        <height>23</height>
+        <height>41</height>
        </rect>
       </property>
       <property name="text">
-       <string>PushButton</string>
+       <string>Загрузить 1 
+изображение</string>
       </property>
      </widget>
      <widget class="QPushButton" name="loadImage2">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>50</y>
+        <y>60</y>
         <width>131</width>
-        <height>23</height>
+        <height>41</height>
        </rect>
       </property>
       <property name="text">
-       <string>PushButton</string>
+       <string>Загрузить 2
+изображение</string>
       </property>
      </widget>
      <widget class="QPushButton" name="showImages">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>90</y>
+        <y>110</y>
         <width>131</width>
-        <height>23</height>
+        <height>31</height>
        </rect>
       </property>
       <property name="text">
-       <string>PushButton</string>
+       <string>Сравнить изображения</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="CompareImageRotate">
+      <property name="geometry">
+       <rect>
+        <x>4</x>
+        <y>152</y>
+        <width>141</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Сравнить изображения
+(Устойчиво к вращению)</string>
       </property>
      </widget>
     </widget>
