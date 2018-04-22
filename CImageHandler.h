@@ -3,7 +3,6 @@
 #include "CImage.h"
 #include "CPyramid.h"
 #include "CDescriptor.h"
-#include "CHistogram.h"
 #include <QDebug>
 #include <QPoint>
 #include <math.h>
@@ -64,7 +63,9 @@ public:
     // Дескрипторы устойчивые к вращению
     void descriptorRotation( CImage& _myImage, int _ambit, const std::vector<QPoint>& _interestPoint );
 
-private:    
+private:
+    CHistogram m_his;
+
     // Ядро Собель по X
     static const CMatrixV<int> g_sobelX;
 
@@ -244,6 +245,7 @@ private:
 
     // Оринтация точки
     std::vector<float> pointOrientation( const CImage& _direction,const CImage& _value, const QPoint& _point, int _radius );
+    float basketIterpolation(const int _index, const std::vector<float>& m_histogramms);
 };
 
 #endif // CIMAGEHANDLER_H

@@ -1,61 +1,58 @@
 #include "CHistogram.h"
 #include <cmath>
 
-CHistogram::CHistogram( int _colPin )
+CHistogram::CHistogram( int _colBasket )
 {
-    m_pin = _colPin;
-    m_histogramms.resize( m_pin );
+    m_histogramms.resize( _colBasket, 0 );
 }
 
-void CHistogram::addValueinPin( float _value, float _phi )
+void CHistogram::addValueinBasket( float _value, float _phi )
 {
-    float step = 2 * M_PI / m_pin;
-    int pin = _phi / step;
-    int pin2;
-    if( _phi >= ( pin * step + step / 2 ) )
+    float step = 2 * M_PI / m_histogramms.size();
+    int basket = _phi / step;
+    int basket2;
+    if( _phi >= ( basket * step + step / 2 ) )
     {
-        pin2 = pin + 1;
+        basket2 = basket + 1;
     }
     else
     {
-        pin2 = pin - 1;
+        basket2 = basket - 1;
     }
-    if( pin2 < 0 )
-        pin2 = m_pin;
-    if( pin2 > m_pin )
-        pin2 = 0;
+    if( basket2 < 0 )
+        basket2 = 1;
+    if( basket2 > m_histogramms.size() )
+        basket2 = m_histogramms.size() - 1;
 
-    if( pin > pin2 )
+    if( basket > basket2 )
     {
-        int temp = pin2;
-        pin2 = pin;
-        pin = temp;
+        int temp = basket2;
+        basket2 = basket;
+        basket = temp;
     }
 
-    float k1 = ( _phi - ( ( pin * step ) + step / 2 ) ) / step;
-    float k2 = ( ( ( pin2 * step ) + step / 2 ) - _phi ) / step;
-
+    float k1 = ( _phi - ( ( basket * step ) + step / 2 ) ) / step;
     k1 = 1 - k1;
-    k2 = 1 - k2;
+    float k2 = 1 - k1;
 
-    m_histogramms[pin] += _value * k1;
-    m_histogramms[pin2] += _value * k2;
+    m_histogramms[basket] += _value * k1;
+    m_histogramms[basket2] += _value * k2;
 }
 
-int CHistogram::getColPin()
+int CHistogram::getColBasket()
 {
-    return m_pin;
+    return m_histogramms.size();
 }
 
-float CHistogram::getValueinPin( const int _i )
+float CHistogram::getValueinBasket( const int _i )
 {
     return m_histogramms[_i];
 }
 
-void CHistogram::setColPin( const int _colPin )
+void CHistogram::setColBasket( const int _colBasket )
 {
-    m_pin = _colPin;
-    m_histogramms.resize( _colPin, 0 );
+    m_histogramms.clear();
+    m_histogramms.resize( _colBasket, 0 );
 }
 
 void CHistogram::normalize( float _max )
@@ -117,9 +114,9 @@ std::vector<float> CHistogram::getPeaks()
         }
     }
     std::vector<float> peaks;
-    peaks.push_back( pInterpolation( peak1index ) );
+    peaks.push_back( basketIterpolation( peak1index ) );
     if( peak2index != -1 && peak1 / peak2 >= 0.8 )
-        peaks.push_back( pInterpolation( peak2index ) );
+        peaks.push_back( basketIterpolation( peak2index ) );
     return peaks;
 }
 
@@ -131,10 +128,11 @@ void CHistogram::clear()
     }
 }
 
-float CHistogram::pInterpolation( const int _index )
+float CHistogram::basketIterpolation( const int _index )
 {
-    auto left = m_histogramms.at( ( _index - 1 + m_pin ) % m_pin );
-    auto right = m_histogramms.at( ( _index + 1 ) % m_pin );
+    auto size = m_histogramms.size();
+    auto left = m_histogramms.at( ( _index - 1 + size ) % size );
+    auto right = m_histogramms.at( ( _index + 1 ) % size );
     auto mid = m_histogramms[ _index ];
     return ( left - right ) / ( 2 * ( left + right - 2 * mid ) );
 }

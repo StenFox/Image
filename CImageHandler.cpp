@@ -1,6 +1,7 @@
 #include "CImageHandler.h"
 #include "CImageKernels.h"
-
+#include <iostream>
+#include <memory>
 using namespace  std;
 
 const CMatrixV<int> CImageHandler::g_sobelX( 3, 3, VsobelX );
@@ -386,10 +387,10 @@ vector<QPoint> CImageHandler::nonMaximumPoints(  vector<float>& _value, vector<Q
 }
 
 //-----------------------------------------------------------------------------------
-void CImageHandler::descriptor( CImage& _myImage, int _colHistogram, int _colPin, const int _ambit, const vector<QPoint>& _interestPoint )
+void CImageHandler::descriptor( CImage& _myImage, int _colHistogram, int _colBasket, const int _ambit, const vector<QPoint>& _interestPoint )
 {
     vector<CDescriptor> descriptors;
-    descriptors.resize( _interestPoint.size(), CDescriptor( _colPin, 16 ) );
+    descriptors.resize( _interestPoint.size(), CDescriptor( _colBasket, 16 ) );
 
     // Предварительные вычисления
     auto dx = convolution( g_sobelX, _myImage, mtBlackEdge );
@@ -491,16 +492,16 @@ void CImageHandler::sixteenHistogramms( const int x, const int y, CDescriptor& _
 float CImageHandler::distanceBetweenDescriptors( const CDescriptor& _d1, const CDescriptor& _d2 )
 {
     Q_ASSERT( _d1.getColHistogramms() == _d2.getColHistogramms() );
-    Q_ASSERT( _d1.getHistograms(0).getColPin() == _d2.getHistograms(0).getColPin() );
+    Q_ASSERT( _d1.getHistograms(0).getColBasket() == _d2.getHistograms(0).getColBasket() );
 
     float Edistance = 0;
     for( int i = 0; i < _d1.getColHistogramms(); i++)
     {
-        int colPin = _d1.getHistograms(i).getColPin();
-        for( int j = 0; j < colPin; j++ )
+        int colBasket = _d1.getHistograms(i).getColBasket();
+        for( int j = 0; j < colBasket; j++ )
         {
             float difference;
-            difference = _d1.getHistograms(i).getValueinPin(j) - _d2.getHistograms(i).getValueinPin(j);
+            difference = _d1.getHistograms(i).getValueinBasket(j) - _d2.getHistograms(i).getValueinBasket( j );
             difference *= difference;
             Edistance += difference;
         }
@@ -622,7 +623,7 @@ vector<float> CImageHandler::pointOrientation( const CImage& _direction,const CI
     // Здесь происходит порча памяти, никак не могу понять как это связанно с ~CHistogram()
     // Heap block at 19913FE8 modified at 19914080 past requested size of 90
     // Работает всё верно, но что-то здесь не то
-    CHistogram histogramm( 36 );
+    m_his.setColBasket( 36 );
     for( int y = -_radius; y < _radius; y++ )
     {
         for( int x = -_radius; x < _radius; x++ )
@@ -633,9 +634,9 @@ vector<float> CImageHandler::pointOrientation( const CImage& _direction,const CI
             {
                 float vG = _value.getItem( yP,xP ) * gaussian( x, y, 2 * sigma );
                 float dG = _direction.getItem( yP,xP );
-                histogramm.addValueinPin( vG, dG );
+                m_his.addValueinBasket( vG, dG );
             }
         }
     }
-    return histogramm.getPeaks();
+    return m_his.getPeaks();
 }

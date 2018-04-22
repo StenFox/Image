@@ -44,9 +44,9 @@ private slots:
 private:
     CImage* myImage;
     CImage* newImage;
-    CImage* myImage1;
-    CImage* myImage2;
-    CImageHandler* myImageHandler;
+    CImage myImage1;
+    CImage myImage2;
+    CImageHandler myImageHandler;
     CPyramid myPyramidImage;
     Ui::MainWindow *ui;
 };

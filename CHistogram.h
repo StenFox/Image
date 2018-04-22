@@ -6,19 +6,21 @@
 class CHistogram
 {
 public:
-    CHistogram( int _colPin );
+    CHistogram() = default;
+    CHistogram( int _colBasket );
     CHistogram( CHistogram&& _his) = default;
     CHistogram( const CHistogram& _his) = default;
-    CHistogram &operator=(CHistogram&& _his) = default;
-    CHistogram &operator=(const CHistogram& _his) = default;
+    CHistogram &operator=( CHistogram&& _his ) = default;
+    CHistogram &operator=( const CHistogram& _his ) = default;
+    ~CHistogram() = default;
 
-    void addValueinPin( float _value, float _phi );
+    void addValueinBasket( float _value, float _phi );
 
-    int getColPin();
+    int getColBasket();
 
-    float getValueinPin(const int _i);
+    float getValueinBasket(const int _i);
 
-    void setColPin( const int _colPin );
+    void setColBasket( const int _colBasket );
 
     void normalize( float _max );
 
@@ -33,9 +35,8 @@ public:
     void clear();
 
 private:
-    int m_pin;
     std::vector<float> m_histogramms;
-    float pInterpolation( const int _index );
+    float basketIterpolation( const int _index );
 };
 
 #endif // CHISTOGRAM_H

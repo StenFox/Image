@@ -33,6 +33,7 @@ public:
 
     QImage getImage();
 
+
     int getHeight() const
     {
         return m_myImage.getColumns();

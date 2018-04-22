@@ -13,7 +13,7 @@ CDescriptor::CDescriptor( const QPoint& _interestPoint, int _colPin, int _colHis
 
 void CDescriptor::addValueInHistogramm( float _value, float _phi, int _histogramm )
 {
-    m_descriptor[_histogramm].addValueinPin( _value, _phi );
+    m_descriptor[_histogramm].addValueinBasket( _value, _phi );
 }
 
 void CDescriptor::setInterestPoint( const QPoint& _interestPoint )
