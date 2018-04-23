@@ -41,6 +41,10 @@ private slots:
 
     void on_CompareImageRotate_clicked();
 
+    void on_brightnessChandge_clicked();
+
+    void on_contrastChange_clicked();
+
 private:
     CImage* myImage;
     CImage* newImage;

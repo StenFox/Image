@@ -61,12 +61,6 @@ void CHistogram::normalize( float _max )
     {
         m_histogramms[i] /= _max;
     }
-
-    for( size_t i = 0; i < m_histogramms.size(); i++ )
-    {
-        if( m_histogramms[i] > 0.2 )
-            m_histogramms[i] = 0.2;
-    }
 }
 
 void CHistogram::bound( const float _val )
@@ -122,10 +116,11 @@ std::vector<float> CHistogram::getPeaks()
 
 void CHistogram::clear()
 {
-    for( size_t i = 0; i < m_histogramms.size(); i++ )
-    {
-        m_histogramms[i] = 0;
-    }
+//    for( size_t i = 0; i < m_histogramms.size(); i++ )
+//    {
+//        m_histogramms[i] = 0;
+//    }
+    m_histogramms.clear();
 }
 
 float CHistogram::basketIterpolation( const int _index )

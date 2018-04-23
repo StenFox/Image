@@ -197,3 +197,23 @@ void MainWindow::on_CompareImageRotate_clicked()
 
     ui->graphicsView->setScene( scene );
 }
+
+void MainWindow::on_brightnessChandge_clicked()
+{
+    myImageHandler.brightnessChange(*myImage,33);
+    QGraphicsScene *scene = new QGraphicsScene();
+    QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage(myImage->getImage()));
+    scene->addItem(item);
+    ui->graphicsView->setScene(scene);
+}
+
+
+
+void MainWindow::on_contrastChange_clicked()
+{
+    myImageHandler.contrastChange(*myImage,33);
+    QGraphicsScene *scene = new QGraphicsScene();
+    QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage(myImage->getImage()));
+    scene->addItem(item);
+    ui->graphicsView->setScene(scene);
+}

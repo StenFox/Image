@@ -425,7 +425,7 @@ void CImageHandler::descriptor( CImage& _myImage, int _colHistogram, int _colBas
                 {
                     float vG = valueGradient.getItem( yP,xP );
                     float dG = directionGradient.getItem( yP,xP );
-                    sixteenHistogramms( x, y, descriptors[k], vG, dG );
+                    sixteenHistogramms( x, y, descriptors[k], vG, dG, _ambit );
                 }
             }
         }
@@ -450,40 +450,46 @@ void CImageHandler::fourHistogramms( const int x, const int y, CDescriptor& _des
 }
 
 //-----------------------------------------------------------------------------------
-void CImageHandler::sixteenHistogramms( const int x, const int y, CDescriptor& _des, const float _vG, const float _dG )
+void CImageHandler::sixteenHistogramms( const int x, const int y, CDescriptor& _des, float _vG, float _dG, int _ambit )
 {
     int gist = 0;
-    if( x <= 3 && y <= 3 )
+    const int step = 16/4;
+    int first = step - 1;
+    int second = first + step;
+    int third = second + step;
+    int fourth = third + step;
+
+    if( x <= first && y <= first )
         gist = 0;
-    else if( x <= 7 && y <= 3 )
+    else if( x <= second && y <= first )
         gist = 1;
-    else if( x <= 11 && y <= 3 )
+    else if( x <= third && y <= first )
         gist = 2;
-    else if( x <= 15 && y <= 3 )
+    else if( x <= fourth && y <= first )
         gist = 3;
-    else if( x <= 3 && y <= 7 )
+    else if( x <= first && y <= second )
         gist = 4;
-    else if( x <= 7 && y <= 7 )
+    else if( x <= second && y <= second )
         gist = 5;
-    else if( x <= 11 && y <= 7 )
+    else if( x <= third && y <= second )
         gist = 6;
-    else if( x <= 15 && y <= 7 )
+    else if( x <= fourth && y <= second )
         gist = 7;
-    else if( x <= 3 && y <= 11 )
+    else if( x <= first && y <= third )
         gist = 8;
-    else if( x <= 7 && y <= 11 )
+    else if( x <= second && y <= third )
         gist = 9;
-    else if( x <= 11 && y <= 11 )
+    else if( x <= third && y <= third )
         gist = 10;
-    else if( x <= 15 && y <= 11 )
+    else if( x <= fourth && y <= third )
         gist = 11;
-    else if( x <= 3 && y <= 15 )
+    else if( x <= first && y <= fourth )
         gist = 12;
-    else if( x <= 7 && y <= 15 )
+    else if( x <= second && y <= fourth )
         gist = 13;
-    else if( x <= 11 && y <= 15 )
+    else if( x <= third && y <= fourth )
         gist = 14;
-    else if( x <= 15 && y <= 15 )
+    else if( x <= fourth && y <= fourth )
         gist = 15;
     _des.addValueInHistogramm( _vG, _dG, gist );
 }
@@ -606,13 +612,14 @@ void CImageHandler::descriptorRotation( CImage& _myImage, int _ambit, const vect
                         int x_Rotate = round( (y) * cos( peaks[i] ) - x * sin( peaks[i] ) );
                         if( x_Rotate < -radius || x_Rotate >= radius || y_Rotate < -radius || y_Rotate >= radius  )
                             continue;
-                        sixteenHistogramms( x_Rotate, y_Rotate, descriptors[k], vG, dG );
+                        sixteenHistogramms( x_Rotate, y_Rotate, descriptors[k], vG, dG, _ambit );
                     }
                 }
             }
         }
         descriptors[k].normalize( 0.2 );
     }
+    m_his.clear();
     _myImage.setDesriptors( descriptors );
 }
 
@@ -620,9 +627,6 @@ void CImageHandler::descriptorRotation( CImage& _myImage, int _ambit, const vect
 vector<float> CImageHandler::pointOrientation( const CImage& _direction,const CImage& _value, const QPoint& _point, int _radius )
 {
     const float sigma = 15;
-    // Здесь происходит порча памяти, никак не могу понять как это связанно с ~CHistogram()
-    // Heap block at 19913FE8 modified at 19914080 past requested size of 90
-    // Работает всё верно, но что-то здесь не то
     m_his.setColBasket( 36 );
     for( int y = -_radius; y < _radius; y++ )
     {
@@ -638,5 +642,7 @@ vector<float> CImageHandler::pointOrientation( const CImage& _direction,const CI
             }
         }
     }
+    m_his.normalize( m_his.maxElement() );
+    m_his.bound( 0.2 );
     return m_his.getPeaks();
 }

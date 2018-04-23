@@ -63,6 +63,29 @@ public:
     // Дескрипторы устойчивые к вращению
     void descriptorRotation( CImage& _myImage, int _ambit, const std::vector<QPoint>& _interestPoint );
 
+    void brightnessChange( CImage& _myImage, float _value )
+    {
+        for( int y = 0; y < _myImage.getHeight(); y++ )
+        {
+            for( int x = 0; x < _myImage.getWidth(); x++ )
+            {
+                _myImage.setItem( y, x, _myImage.getItem(y,x) + _value );
+            }
+        }
+    }
+
+    void contrastChange( CImage& _myImage, float _contrast )
+    {
+        float factor = ( 259 * ( _contrast + 255 ) ) / ( 255 * ( 259 - _contrast ) );
+        for( int y = 0; y < _myImage.getHeight(); y++ )
+        {
+            for( int x = 0; x < _myImage.getWidth(); x++ )
+            {
+                _myImage.setItem( y, x, factor * ( _myImage.getItem( y,x ) - 128 ) + 128 );
+            }
+        }
+    }
+
 private:
     CHistogram m_his;
 
@@ -238,7 +261,7 @@ private:
     void fourHistogramms( const int x, const int y, CDescriptor& _des, float _vG, float _dG );
 
     // Распределяем значения между 16 гистораммами
-    void sixteenHistogramms( const int x, const int y, CDescriptor& _des,float _vG, float _dG );
+    void sixteenHistogramms( const int x, const int y, CDescriptor& _des,float _vG, float _dG, int _ambit );
 
     // "Расстояние" между дескрипторами
     float distanceBetweenDescriptors( const CDescriptor& _d, const CDescriptor& _d1 );

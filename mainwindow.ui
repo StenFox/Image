@@ -92,7 +92,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="lab1">
      <attribute name="title">
@@ -109,6 +109,32 @@
       </property>
       <property name="text">
        <string>Собель</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="brightnessChandge">
+      <property name="geometry">
+       <rect>
+        <x>4</x>
+        <y>60</y>
+        <width>141</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Изменение яркости</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="contrastChange">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>102</y>
+        <width>131</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Изменение контраста</string>
       </property>
      </widget>
     </widget>
