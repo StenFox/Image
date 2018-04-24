@@ -200,7 +200,7 @@ void MainWindow::on_CompareImageRotate_clicked()
 
 void MainWindow::on_brightnessChandge_clicked()
 {
-    myImageHandler.brightnessChange(*myImage,33);
+    myImageHandler.brightnessChange(*myImage,250);
     QGraphicsScene *scene = new QGraphicsScene();
     QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage(myImage->getImage()));
     scene->addItem(item);
@@ -211,9 +211,14 @@ void MainWindow::on_brightnessChandge_clicked()
 
 void MainWindow::on_contrastChange_clicked()
 {
-    myImageHandler.contrastChange(*myImage,33);
+    myImageHandler.contrastChange(*myImage,250);
     QGraphicsScene *scene = new QGraphicsScene();
     QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage(myImage->getImage()));
     scene->addItem(item);
     ui->graphicsView->setScene(scene);
+}
+
+void MainWindow::on_Test1_clicked()
+{
+    myImageHandler.testDesriptorsForBrightness( *myImage );
 }

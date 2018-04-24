@@ -45,6 +45,8 @@ private slots:
 
     void on_contrastChange_clicked();
 
+    void on_Test1_clicked();
+
 private:
     CImage* myImage;
     CImage* newImage;

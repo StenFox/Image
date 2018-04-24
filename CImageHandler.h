@@ -63,6 +63,8 @@ public:
     // Дескрипторы устойчивые к вращению
     void descriptorRotation( CImage& _myImage, int _ambit, const std::vector<QPoint>& _interestPoint );
 
+    float testDesriptorsForBrightness( CImage& _myImage );
+
     void brightnessChange( CImage& _myImage, float _value )
     {
         for( int y = 0; y < _myImage.getHeight(); y++ )
@@ -269,6 +271,8 @@ private:
     // Оринтация точки
     std::vector<float> pointOrientation( const CImage& _direction,const CImage& _value, const QPoint& _point, int _radius );
     float basketIterpolation(const int _index, const std::vector<float>& m_histogramms);
+
+    int compareDes(const std::vector<std::pair< CDescriptor,CDescriptor > >& des);
 };
 
 #endif // CIMAGEHANDLER_H

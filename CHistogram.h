@@ -1,6 +1,5 @@
 #ifndef CHISTOGRAM_H
 #define CHISTOGRAM_H
-#include <vector>
 #include <algorithm>
 
 class CHistogram

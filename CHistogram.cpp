@@ -116,10 +116,6 @@ std::vector<float> CHistogram::getPeaks()
 
 void CHistogram::clear()
 {
-//    for( size_t i = 0; i < m_histogramms.size(); i++ )
-//    {
-//        m_histogramms[i] = 0;
-//    }
     m_histogramms.clear();
 }
 
