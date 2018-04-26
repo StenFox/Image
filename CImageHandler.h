@@ -5,7 +5,7 @@
 #include "CDescriptor.h"
 #include <QDebug>
 #include <QPoint>
-#include <math.h>
+#include <cmath>
 
 enum mtProcessingEdgeEffects
 {

@@ -57,8 +57,8 @@ void CImageHandler::robert( mtProcessingEdgeEffects _method, CImage& _image  )
 //-----------------------------------------------------------------------------------
 void CImageHandler::downSpace( CImage& _myImage )
 {
-    int newW =_myImage.getWidth()/2;
-    int newH =_myImage.getHeight()/2;
+    int newW =_myImage.getWidth() / 2;
+    int newH =_myImage.getHeight() / 2;
     vector<float> temp = resizeBilinear( _myImage,_myImage.getWidth(),_myImage.getHeight(),newW, newH );
     _myImage.resize(newH,newW,temp);
     temp.clear();
@@ -519,12 +519,6 @@ float CImageHandler::distanceBetweenDescriptors( const CDescriptor& _d1, const C
 //-----------------------------------------------------------------------------------
 vector<pair<CDescriptor,CDescriptor>> CImageHandler::imageComparison( CImage& _myImage1, CImage& _myImage2, bool _discardPoints, float _threshold )
 {
-    //descriptor( _myImage1, 16, 8, 16, moravec( _myImage1, 5000, 3, 3, false, 0 ) );
-    //descriptor( _myImage2, 16, 8, 16, moravec( _myImage2, 5000, 3, 3, false, 0 ) );
-
-    //descriptorRotation( _myImage1, 16, moravec( _myImage1, 5000, 3, 3, false, 0 ) );
-    //descriptorRotation( _myImage2, 16, moravec( _myImage2, 5000, 3, 3, false, 0 ) );
-
     auto des1 = _myImage1.getDescriptors();
     auto des2 = _myImage2.getDescriptors();
 
@@ -606,20 +600,21 @@ void CImageHandler::descriptorRotation( CImage& _myImage, int _ambit, const vect
                     if( _myImage.isValid(  yP,xP ) )
                     {
                         float vG = valueGradient.getItem( yP,xP );
-                        float dG = directionGradient.getItem( yP,xP ) + 2 * M_PI -  peaks[i];
+                        float dG = directionGradient.getItem( yP,xP ) + 2 * M_PI - peaks[i];
                         dG = fmod( dG, 2 * M_PI );
+                        if(dG < 0)
+                            dG = fmod(dG + 2 * M_PI, 2 * M_PI );
                         int y_Rotate = round( (x) * cos( peaks[i] ) + y * sin( peaks[i] ) );
                         int x_Rotate = round( (y) * cos( peaks[i] ) - x * sin( peaks[i] ) );
                         if( x_Rotate < -radius || x_Rotate >= radius || y_Rotate < -radius || y_Rotate >= radius  )
                             continue;
-                        sixteenHistogramms( x_Rotate, y_Rotate, descriptors[k], vG, dG, _ambit );
+                        sixteenHistogramms( x_Rotate + radius, y_Rotate + radius, descriptors[k], vG, dG, _ambit );
                     }
                 }
             }
         }
         descriptors[k].normalize( 0.2 );
     }
-    m_his.clear();
     _myImage.setDesriptors( descriptors );
 }
 
@@ -627,7 +622,7 @@ void CImageHandler::descriptorRotation( CImage& _myImage, int _ambit, const vect
 vector<float> CImageHandler::pointOrientation( const CImage& _direction,const CImage& _value, const QPoint& _point, int _radius )
 {
     const float sigma = 15;
-    m_his.setColBasket( 36 );
+    CHistogram his( 36 );
     for( int y = -_radius; y < _radius; y++ )
     {
         for( int x = -_radius; x < _radius; x++ )
@@ -638,13 +633,11 @@ vector<float> CImageHandler::pointOrientation( const CImage& _direction,const CI
             {
                 float vG = _value.getItem( yP,xP ) * gaussian( x, y, 2 * sigma );
                 float dG = _direction.getItem( yP,xP );
-                m_his.addValueinBasket( vG, dG );
+                his.addValueinBasket( vG, dG );
             }
         }
     }
-    m_his.normalize( m_his.maxElement() );
-    m_his.bound( 0.2 );
-    return m_his.getPeaks();
+    return his.getPeaks();
 }
 
 float CImageHandler::testDesriptorsForBrightness( CImage& _myImage )

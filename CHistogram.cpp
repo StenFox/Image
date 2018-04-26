@@ -8,9 +8,13 @@ CHistogram::CHistogram( int _colBasket )
 
 void CHistogram::addValueinBasket( float _value, float _phi )
 {
+    int basket = 0;
+    int basket2 = 0;
     float step = 2 * M_PI / m_histogramms.size();
-    int basket = _phi / step;
-    int basket2;
+    basket = _phi / step;
+    if( basket == m_histogramms.size() )
+        basket = m_histogramms.size() -1;
+
     if( _phi >= ( basket * step + step / 2 ) )
     {
         basket2 = basket + 1;
@@ -19,10 +23,11 @@ void CHistogram::addValueinBasket( float _value, float _phi )
     {
         basket2 = basket - 1;
     }
+
     if( basket2 < 0 )
         basket2 = 1;
-    if( basket2 > m_histogramms.size() )
-        basket2 = m_histogramms.size() - 1;
+    if( basket2 > m_histogramms.size() - 1 )
+        basket2 = m_histogramms.size() - 2;
 
     if( basket > basket2 )
     {
@@ -34,9 +39,14 @@ void CHistogram::addValueinBasket( float _value, float _phi )
     float k1 = ( _phi - ( ( basket * step ) + step / 2 ) ) / step;
     k1 = 1 - k1;
     float k2 = 1 - k1;
-
-    m_histogramms[basket] += _value * k1;
-    m_histogramms[basket2] += _value * k2;
+    try
+    {
+        m_histogramms.at( basket ) += _value * k1;
+        m_histogramms.at( basket2 ) += _value * k2;
+    }
+    catch(std::exception ex)
+    {
+    }
 }
 
 int CHistogram::getColBasket()
@@ -46,7 +56,7 @@ int CHistogram::getColBasket()
 
 float CHistogram::getValueinBasket( const int _i )
 {
-    return m_histogramms[_i];
+    return m_histogramms.at( _i );
 }
 
 void CHistogram::setColBasket( const int _colBasket )
@@ -59,7 +69,8 @@ void CHistogram::normalize( float _max )
 {
     for( size_t i = 0; i < m_histogramms.size(); i++ )
     {
-        m_histogramms[i] /= _max;
+        m_histogramms.at(i) /= _max;
+        m_histogramms.at(i) /= _max;
     }
 }
 
@@ -67,8 +78,8 @@ void CHistogram::bound( const float _val )
 {
     for( size_t i = 0; i < m_histogramms.size(); i++ )
     {
-        if( m_histogramms[i] > _val )
-            m_histogramms[i] = _val;
+        if( m_histogramms.at(i) > _val )
+            m_histogramms.at(i) = _val;
     }
 }    
 
@@ -82,7 +93,7 @@ float CHistogram::sumOfSquares()
     float sum = 0;
     for( size_t i  = 0; i < m_histogramms.size(); i++ )
     {
-        sum += m_histogramms[i] * m_histogramms[i];
+        sum += m_histogramms.at(i) * m_histogramms.at( i );
     }
     return sum;
 }
@@ -96,14 +107,14 @@ std::vector<float> CHistogram::getPeaks()
 
     for( size_t i = 0; i < m_histogramms.size(); i++)
     {
-        if( peak1 < m_histogramms[i] )
+        if( peak1 < m_histogramms.at(i) )
         {
-            peak1 =  m_histogramms[i];
+            peak1 =  m_histogramms.at(i);
             peak1index = i;
         }
-        if( peak2 < m_histogramms[i] && m_histogramms[i] < peak1 )
+        if( peak2 < m_histogramms.at(i) && m_histogramms.at(i) < peak1 )
         {
-            peak2 = m_histogramms[i];
+            peak2 = m_histogramms.at(i);
             peak2index = i;
         }
     }
@@ -124,6 +135,6 @@ float CHistogram::basketIterpolation( const int _index )
     auto size = m_histogramms.size();
     auto left = m_histogramms.at( ( _index - 1 + size ) % size );
     auto right = m_histogramms.at( ( _index + 1 ) % size );
-    auto mid = m_histogramms[ _index ];
+    auto mid = m_histogramms.at( _index );
     return ( left - right ) / ( 2 * ( left + right - 2 * mid ) );
 }

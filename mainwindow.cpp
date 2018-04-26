@@ -83,7 +83,7 @@ void MainWindow::on_HarrisonButton_clicked()
     if( ui->useGauss->checkState() == Qt::Checked )
             myImageHandler.gaussianBlur(ui->sigmaForHarrison->value(), *myImage ,( mtProcessingEdgeEffects )ui->M_EdgeComboBox->currentIndex());
     bool useNonMax = ui->useNonMaximum->checkState() == Qt::Checked;
-    auto points = myImageHandler.harris( *myImage, ui->Tvalue->value(), 0.06,useNonMax, 500 );
+    auto points = myImageHandler.harris( *myImage, ui->Tvalue->value(), 0.06,useNonMax, 100 );
     QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage( myImage->getImage() ) );
     scene->addItem( item );
 
@@ -174,19 +174,23 @@ void MainWindow::on_CompareImageRotate_clicked()
     scene->addItem( item1 );
     scene->addItem( item2 );
 
-    auto pointsImageFirst = myImageHandler.moravec( myImage1, 5000, 3, 3, false, 0 );
+    temp1 = myImage1;
+    myImageHandler.gaussianBlur( 2, temp1, mtBlackEdge );
+    auto pointsImageFirst = myImageHandler.harris( temp1, 397700000, 0.06, true, 100 );
     myImageHandler.descriptorRotation( myImage1, 16, pointsImageFirst );
 
-    auto pointsImageSecond = myImageHandler.moravec( myImage2, 5000, 3, 3, false, 0 );
+    temp2 = myImage2;
+    myImageHandler.gaussianBlur( 2, temp2, mtBlackEdge );
+    auto pointsImageSecond = myImageHandler.harris( temp2, 397700000, 0.06, true, 100 );
     myImageHandler.descriptorRotation( myImage2, 16, pointsImageSecond );
 
-    auto des = myImageHandler.imageComparison( myImage1, myImage2, false, 0.9 );
+    auto des = myImageHandler.imageComparison( myImage1, myImage2, false, 0.8 );
 
     QPen pen;
     pen.setBrush( QBrush() );
 
-    pen.setColor( QColor(255,0,0));
-    for( size_t i = 0; i< des.size(); i++)
+    pen.setColor( QColor(255,0,0) );
+    for( size_t i = 0; i < des.size(); i++)
     {
         auto r = rand() % 255 + 1;
         auto g = rand() % 255 + 1;

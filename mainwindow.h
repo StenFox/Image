@@ -52,6 +52,8 @@ private:
     CImage* newImage;
     CImage myImage1;
     CImage myImage2;
+    CImage temp1;
+    CImage temp2;
     CImageHandler myImageHandler;
     CPyramid myPyramidImage;
     Ui::MainWindow *ui;
