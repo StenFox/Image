@@ -47,6 +47,8 @@ private slots:
 
     void on_Test1_clicked();
 
+    void on_TestRotate_clicked();
+
 private:
     CImage* myImage;
     CImage* newImage;
@@ -57,6 +59,10 @@ private:
     CImageHandler myImageHandler;
     CPyramid myPyramidImage;
     Ui::MainWindow *ui;
+
+    float testBrightness( CImage& _myImage );
+    float testRotate( CImage& _myImage );
+    float testContrast(CImage& _myImage);
 };
 
 #endif // MAINWINDOW_H

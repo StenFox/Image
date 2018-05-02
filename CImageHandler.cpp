@@ -640,87 +640,33 @@ vector<float> CImageHandler::pointOrientation( const CImage& _direction,const CI
     return his.getPeaks();
 }
 
-float CImageHandler::testDesriptorsForBrightness( CImage& _myImage )
+float CImageHandler::testDesriptorsForBrightness( CImage& _myImage, float _minBrightness, float _maxBrightness, float _step )
 {
-    CImage temp = _myImage;
-    CImage temp2 = _myImage;
-    CImage temp3 = _myImage;
-    CImage temp4 = _myImage;
-
     auto pointsImageFirst = moravec( _myImage, 5000, 3, 3, false, 0 );
     descriptor( _myImage, 16, 8, 16, pointsImageFirst );
-
     float procent = 0;
-
-    brightnessChange( temp, 10 );
-    temp.normalizeImage();
-    auto pointsImageSecond = moravec( temp, 5000, 3, 3, false, 0 );
-    descriptor( temp, 16, 8, 16, pointsImageSecond );
-
-    auto des = imageComparison( _myImage, temp, true, 0.9 );
-
-    if( des.size() != 0 )
+    for( float curBrightness = _minBrightness; curBrightness < _maxBrightness; curBrightness += _step  )
     {
-        int col = compareDes(des);
-        if( col != 0 )
-            procent = ( (float)col / des.size() ) * 100;
+        CImage temp = _myImage;
+        brightnessChange( temp, curBrightness );
+        temp.normalizeImage();
+        auto pointsImageSecond = moravec( temp, 5000, 3, 3, false, 0 );
+        descriptor( temp, 16, 8, 16, pointsImageSecond );
+        auto des = imageComparison( _myImage, temp, true, 0.9 );
+
+        if( des.size() != 0 )
+        {
+            int col = compareDes(des);
+            if( col != 0 )
+                procent += ( (float)col / des.size() ) * 100;
+            else
+                procent /= 2;
+        }
     }
-
-    brightnessChange( temp2, -10 );
-    temp2.normalizeImage();
-    pointsImageSecond = moravec( temp2, 5000, 3, 3, false, 0 );
-    descriptor( temp2, 16, 8, 16, pointsImageSecond );
-
-    des = imageComparison( _myImage, temp2, true, 0.9 );
-
-    if( des.size() != 0 )
-    {
-        int col = compareDes(des);
-        if( col != 0)
-            procent = ( procent + ( (float)col / des.size() ) * 100 ) / 2;
-        else
-            procent /= 2;
-    }
-
-    brightnessChange( temp3, 50 );
-    temp3.normalizeImage();
-
-    pointsImageSecond = moravec( temp3, 5000, 3, 3, false, 0 );
-    descriptor( temp3, 16, 8, 16, pointsImageSecond );
-
-    des = imageComparison( _myImage, temp3, true, 0.9 );
-
-    if( des.size() != 0 )
-    {
-        int col = compareDes(des);
-        if( col != 0)
-            procent = ( procent + ( (float)col / des.size() ) * 100 ) / 2;
-        else
-            procent /= 2;
-    }
-
-    brightnessChange( temp4, -50 );
-    temp4.normalizeImage();
-    pointsImageSecond = moravec( temp4, 5000, 3, 3, false, 0 );
-    descriptor( temp4, 16, 8, 16, pointsImageSecond );
-
-
-    des = imageComparison( _myImage, temp4, true, 0.9 );
-
-    if( des.size() != 0 )
-    {
-        int col = compareDes(des);
-        if( col != 0)
-            procent = ( procent + ( col / des.size() ) * 100 ) / 2;
-        else
-            procent /= 2;
-    }
-
     return procent;
 }
 
-
-int CImageHandler::compareDes(const vector<pair<CDescriptor,CDescriptor>>& des)
+int CImageHandler::compareDes( const vector<pair<CDescriptor,CDescriptor>>& des )
 {
     int col = 0;
     for( int i = 0; i < des.size(); i++ )

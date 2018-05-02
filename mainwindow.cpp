@@ -12,6 +12,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->M_EdgeComboBox->insertItem( 0, "'Чёрные' границы" );
     ui->M_EdgeComboBox->insertItem( 1, "Копирование границ" );
     ui->M_EdgeComboBox->insertItem( 2, "Тор" );
+
+    ui->PointDetector->insertItem( mtMoravec, "Моравик" );
+    ui->PointDetector->insertItem( mtHarrison, "Харисон" );
 }
 
 MainWindow::~MainWindow()
@@ -24,10 +27,15 @@ void MainWindow::on_LoadImageButton_clicked()
     QString fileName = QFileDialog::getOpenFileName( this,"Open Image",nullptr,"Image files (*.png *.jpg *.bmp)" );
     QImage img;
     img.load(fileName);
+    //QTransform t;
+    //t.shear(0.3,0.0);
+    //img = img.transformed(t);
+
     myImage = new CImage( img.height(), img.width() );
     myImageHandler.grayScale( img ,*myImage );
-    QGraphicsScene *scene = new QGraphicsScene();
+    myImageHandler.shiftImage(*myImage,30,0);
     QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage(myImage->getImage()));
+    QGraphicsScene *scene = new QGraphicsScene();
     scene->addItem(item);
     ui->graphicsView->setScene(scene);
 }
@@ -224,5 +232,173 @@ void MainWindow::on_contrastChange_clicked()
 
 void MainWindow::on_Test1_clicked()
 {
-    myImageHandler.testDesriptorsForBrightness( *myImage );
+    auto b = testRotate(*myImage);
+    int h = 0;
+}
+
+
+float MainWindow::testBrightness( CImage& _myImage )
+{
+    std::vector<QPoint> pointsImageFirst;
+    switch( (mtPointDetector)ui->PointDetector->currentIndex())
+    {
+        case mtMoravec:
+            pointsImageFirst = myImageHandler.moravec( _myImage, 5000, 3, 3, false, 0 );
+            break;
+        case mtHarrison:
+            pointsImageFirst = myImageHandler.harris( _myImage, 397700000, 0.06, true, 100 );
+            break;
+    }
+    float procent = 0;
+    for( float curBrightness = ui->MinBrightness->value() ; curBrightness < ui->MaxBrightness->value(); curBrightness += ui->stepBrightnessChange->value()  )
+    {
+        CImage temp = _myImage;
+        myImageHandler.brightnessChange( temp, curBrightness );
+        temp.normalizeImage();
+        std::vector<QPoint> pointsImageSecond;
+        switch( (mtPointDetector)ui->PointDetector->currentIndex())
+        {
+            case mtMoravec:
+                pointsImageSecond = myImageHandler.moravec( temp, 5000, 3, 3, false, 0 );
+                break;
+            case mtHarrison:
+                pointsImageSecond = myImageHandler.harris( temp, 397700000, 0.06, true, 100 );
+                break;
+        }
+        int col = 0;
+        for( int i = 0; i < pointsImageFirst.size(); i++ )
+        {
+            auto p1 = pointsImageFirst[i];
+            for( int j = 0; j < pointsImageSecond.size(); j++ )
+            {
+                auto p2 = pointsImageSecond[j];
+                if( abs( p1.x() - p2.x() ) <= 2 && abs( p1.y() - p2.y() ) <= 2 )
+                {
+                    col++;
+                    pointsImageSecond.erase( pointsImageSecond.begin() + j );
+                    break;
+                }
+            }
+        }
+        if( col != 0 )
+            procent += ( (float)col / pointsImageFirst.size() ) * 100;
+        else
+            procent /= 2;
+    }
+    return procent;
+}
+
+
+float MainWindow::testContrast(CImage& _myImage)
+{
+    std::vector<QPoint> pointsImageFirst;
+    switch( (mtPointDetector)ui->PointDetector->currentIndex())
+    {
+        case mtMoravec:
+            pointsImageFirst = myImageHandler.moravec( _myImage, 5000, 3, 3, false, 0 );
+            break;
+        case mtHarrison:
+            pointsImageFirst = myImageHandler.harris( _myImage, 397700000, 0.06, true, 100 );
+            break;
+    }
+    float procent = 0;
+    for( float curContrast = ui->MinContrast->value() ; curContrast < ui->MaxContrast->value(); curContrast += ui->stepContrastChange->value()  )
+    {
+        CImage temp = _myImage;
+        myImageHandler.contrastChange( temp, curContrast );
+        temp.normalizeImage();
+        std::vector<QPoint> pointsImageSecond;
+        switch( (mtPointDetector)ui->PointDetector->currentIndex())
+        {
+            case mtMoravec:
+                pointsImageSecond = myImageHandler.moravec( temp, 5000, 3, 3, false, 0 );
+                break;
+            case mtHarrison:
+                pointsImageSecond = myImageHandler.harris( temp, 397700000, 0.06, true, 100 );
+                break;
+        }
+        int col = 0;
+        for( int i = 0; i < pointsImageFirst.size(); i++ )
+        {
+            auto p1 = pointsImageFirst[i];
+            for( int j = 0; j < pointsImageSecond.size(); j++ )
+            {
+                auto p2 = pointsImageSecond[j];
+                if( abs( p1.x() - p2.x() ) <= 2 && abs( p1.y() - p2.y() ) <= 2 )
+                {
+                    col++;
+                    pointsImageSecond.erase( pointsImageSecond.begin() + j );
+                    break;
+                }
+            }
+        }
+        if( col != 0 )
+            procent += ( (float)col / pointsImageFirst.size() ) * 100;
+        else
+            procent /= 2;
+    }
+    return procent;
+}
+
+float MainWindow::testRotate( CImage& _myImage )
+{
+    std::vector<QPoint> pointsImageFirst;
+    switch( (mtPointDetector)ui->PointDetector->currentIndex())
+    {
+        case mtMoravec:
+            pointsImageFirst = myImageHandler.moravec( _myImage, 5000, 3, 3, false, 0 );
+            break;
+        case mtHarrison:
+            pointsImageFirst = myImageHandler.harris( _myImage, 397700000, 0.06, false, 100 );
+            break;
+    }
+    float procent = 0;
+    int count = 0;
+    for( float curAngle = ui->MinAgleRotate->value() ; curAngle < ui->MaxAgleRotate->value(); curAngle += ui->stepAgleRotateChange->value()  )
+    {
+        QImage qtemp = _myImage.getImage();
+        QTransform transform;
+        transform.rotate( curAngle );
+        qtemp = qtemp.transformed(transform);
+        transform = QImage::trueMatrix( transform, _myImage.getWidth(), _myImage.getHeight() );
+        CImage temp( qtemp.height(), qtemp.width() );
+        myImageHandler.grayScale( qtemp, temp );
+        std::vector<QPoint> pointsImageSecond;
+        switch( (mtPointDetector)ui->PointDetector->currentIndex())
+        {
+            case mtMoravec:
+                pointsImageSecond = myImageHandler.moravec( temp, 5000, 3, 3, false, 0 );
+                break;
+            case mtHarrison:
+                pointsImageSecond = myImageHandler.harris( temp, 397700000, 0.06, false, 100 );
+                break;
+        }
+        int col = 0;
+        for( int i = 0; i < pointsImageFirst.size(); i++ )
+        {
+            auto p1 = pointsImageFirst[i];
+            p1 = transform.map( p1 );
+            for( int j = 0; j < pointsImageSecond.size(); j++ )
+            {
+                auto p2 = pointsImageSecond[j];
+                if( abs( p1.x() - p2.x() ) <= 2 && abs( p1.y() - p2.y() ) <= 2 )
+                {
+                    col++;
+                    pointsImageSecond.erase( pointsImageSecond.begin() + j );
+                    break;
+                }
+            }
+        }
+        procent += ( (float)col / pointsImageFirst.size() ) * 100;
+        count++;
+    }
+    return procent / count;
+}
+
+
+
+void MainWindow::on_TestRotate_clicked()
+{
+    auto b = testRotate(*myImage);
+    int h = 0;
 }

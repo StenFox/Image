@@ -25,6 +25,12 @@ enum mtHistogramm
     mtSixteenHistgramms,
 };
 
+enum mtPointDetector
+{
+    mtMoravec,
+    mtHarrison
+};
+
 class CImageHandler
 {
 public:
@@ -63,8 +69,6 @@ public:
     // Дескрипторы устойчивые к вращению
     void descriptorRotation( CImage& _myImage, int _ambit, const std::vector<QPoint>& _interestPoint );
 
-    float testDesriptorsForBrightness( CImage& _myImage );
-
     void brightnessChange( CImage& _myImage, float _value )
     {
         for( int y = 0; y < _myImage.getHeight(); y++ )
@@ -88,9 +92,27 @@ public:
         }
     }
 
-private:
-    CHistogram m_his;
+    void shiftImage( CImage& _myImage, int _shiftX, int _shiftY )
+    {
+        CImage temp( _myImage.getHeight(), _myImage.getWidth() );
+        for( int y = 0; y < _myImage.getHeight(); y++ )
+        {
+            for( int x = 0; x < _myImage.getWidth(); x++ )
+            {
+                int newY = y + _shiftY;
+                int newX = x + _shiftX;
+                if( temp.isValid(newY,newX) )
+                    temp.setItem( newY, newX, _myImage.getItem( y,x ) );
+            }
+        }
+        _myImage = temp;
+    }
 
+    float testDesriptorsForBrightness( CImage& _myImage, float _minBrightness, float _maxBrightness, float _step );
+
+    float testPointDetectorForBrightness( CImage& _myImage, float _minBrightness, float _maxBrightness, float _step );
+
+private:
     // Ядро Собель по X
     static const CMatrixV<int> g_sobelX;
 

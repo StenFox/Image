@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1000</width>
+    <width>1063</width>
     <height>637</height>
    </rect>
   </property>
@@ -17,9 +17,9 @@
    <widget class="QPushButton" name="LoadImageButton">
     <property name="geometry">
      <rect>
-      <x>830</x>
+      <x>760</x>
       <y>10</y>
-      <width>161</width>
+      <width>291</width>
       <height>31</height>
      </rect>
     </property>
@@ -56,9 +56,9 @@
    <widget class="QComboBox" name="M_EdgeComboBox">
     <property name="geometry">
      <rect>
-      <x>830</x>
+      <x>760</x>
       <y>50</y>
-      <width>161</width>
+      <width>291</width>
       <height>22</height>
      </rect>
     </property>
@@ -68,8 +68,8 @@
      <rect>
       <x>10</x>
       <y>20</y>
-      <width>791</width>
-      <height>561</height>
+      <width>741</width>
+      <height>431</height>
      </rect>
     </property>
     <property name="verticalScrollBarPolicy">
@@ -85,15 +85,154 @@
    <widget class="QTabWidget" name="tabWidget">
     <property name="geometry">
      <rect>
-      <x>830</x>
+      <x>760</x>
       <y>80</y>
-      <width>161</width>
+      <width>291</width>
       <height>501</height>
      </rect>
     </property>
     <property name="currentIndex">
      <number>0</number>
     </property>
+    <widget class="QWidget" name="tab_2">
+     <attribute name="title">
+      <string>Тестирование</string>
+     </attribute>
+     <widget class="QDoubleSpinBox" name="MinBrightness">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>81</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="MaxBrightness">
+      <property name="geometry">
+       <rect>
+        <x>100</x>
+        <y>20</y>
+        <width>81</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="stepBrightnessChange">
+      <property name="geometry">
+       <rect>
+        <x>190</x>
+        <y>20</y>
+        <width>81</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="PointDetector">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>160</y>
+        <width>261</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="MaxContrast">
+      <property name="geometry">
+       <rect>
+        <x>100</x>
+        <y>60</y>
+        <width>81</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="MinContrast">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>60</y>
+        <width>81</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="stepContrastChange">
+      <property name="geometry">
+       <rect>
+        <x>190</x>
+        <y>60</y>
+        <width>81</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="MinAgleRotate">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>100</y>
+        <width>81</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="minimum">
+       <double>-180.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>180.000000000000000</double>
+      </property>
+      <property name="value">
+       <double>-30.000000000000000</double>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="MaxAgleRotate">
+      <property name="geometry">
+       <rect>
+        <x>100</x>
+        <y>100</y>
+        <width>81</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="minimum">
+       <double>-180.000000000000000</double>
+      </property>
+      <property name="value">
+       <double>30.000000000000000</double>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="stepAgleRotateChange">
+      <property name="geometry">
+       <rect>
+        <x>190</x>
+        <y>100</y>
+        <width>81</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="maximum">
+       <double>60.000000000000000</double>
+      </property>
+      <property name="value">
+       <double>10.000000000000000</double>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="TestRotate">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>210</y>
+        <width>261</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>PushButton</string>
+      </property>
+     </widget>
+    </widget>
     <widget class="QWidget" name="lab1">
      <attribute name="title">
       <string>1 Л</string>
@@ -473,7 +612,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1000</width>
+     <width>1063</width>
      <height>21</height>
     </rect>
    </property>
