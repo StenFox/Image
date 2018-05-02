@@ -10,6 +10,18 @@ namespace Ui {
 class MainWindow;
 }
 
+enum TypeChange
+{
+    rotate,
+    shift,
+    brightness,
+    contrast,
+    affin,
+    scale,
+    noise
+};
+
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -63,6 +75,10 @@ private:
     float testBrightness( CImage& _myImage );
     float testRotate( CImage& _myImage );
     float testContrast(CImage& _myImage);
+
+
+    float testImage( float _min, float _max,float _step, CImage& _myImage,TypeChange _type );
+    void setInterestPoints(std::vector<QPoint>& _vector,const CImage& _myImage);
 };
 
 #endif // MAINWINDOW_H

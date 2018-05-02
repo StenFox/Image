@@ -39,6 +39,11 @@ public:
         return m_myImage.getColumns();
     }
 
+    void setSize( int _columns, int _width )
+    {
+        m_myImage.resize(_columns,_width);
+    }
+
     void setHeight( int _value )
     {
         m_myImage.setColumns( _value );

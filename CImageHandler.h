@@ -108,6 +108,19 @@ public:
         _myImage = temp;
     }
 
+    void addNoise(CImage& _myImage)
+    {
+        for( int y = 0; y < _myImage.getHeight(); y++ )
+        {
+            for( int x = 0; x < _myImage.getWidth(); x++ )
+            {
+                int g = rand()%10;
+                if( g == 0 )
+                    _myImage.setItem( x, y, _myImage.getItem( y,x ) + rand()%255 );
+            }
+        }
+    }
+
     float testDesriptorsForBrightness( CImage& _myImage, float _minBrightness, float _maxBrightness, float _step );
 
     float testPointDetectorForBrightness( CImage& _myImage, float _minBrightness, float _maxBrightness, float _step );

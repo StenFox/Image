@@ -144,6 +144,13 @@ public:
         m_matrix = std::move( _vectorForCopy );
     }
 
+    void resize( int _columns,int _rows )
+    {
+        m_columns = _columns;
+        m_rows = _rows;
+        m_matrix.resize(m_columns*m_rows);
+    }
+
     bool isValid( int _columns,int _rows ) const
     {
         if( _columns < 0 || _rows < 0)
