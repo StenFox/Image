@@ -125,6 +125,8 @@ public:
 
     float testPointDetectorForBrightness( CImage& _myImage, float _minBrightness, float _maxBrightness, float _step );
 
+    int compareDes( const std::vector<std::pair< CDescriptor,CDescriptor > >& des );
+
 private:
     // Ядро Собель по X
     static const CMatrixV<int> g_sobelX;
@@ -306,8 +308,6 @@ private:
     // Оринтация точки
     std::vector<float> pointOrientation( const CImage& _direction,const CImage& _value, const QPoint& _point, int _radius );
     float basketIterpolation(const int _index, const std::vector<float>& m_histogramms);
-
-    int compareDes(const std::vector<std::pair< CDescriptor,CDescriptor > >& des);
 };
 
 #endif // CIMAGEHANDLER_H

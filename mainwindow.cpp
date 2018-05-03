@@ -16,6 +16,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->PointDetector->insertItem( mtMoravec, "Моравик" );
     ui->PointDetector->insertItem( mtHarrison, "Харисон" );
+
+    ui->DescriptorsList->insertItem( 0, "Самый простой дескриптор" );
+    ui->DescriptorsList->insertItem( 1, "Устойчивый к вращению дескритор" );
 }
 
 MainWindow::~MainWindow()
@@ -27,12 +30,10 @@ void MainWindow::on_LoadImageButton_clicked()
 {
     QString fileName = QFileDialog::getOpenFileName( this,"Open Image",nullptr,"Image files (*.png *.jpg *.bmp)" );
     QImage img;
-    img.load(fileName);
-
-    myImage = new CImage( img.height(), img.width() );
+    img.load(fileName);    myImage = new CImage( img.height(), img.width() );
     myImageHandler.grayScale( img ,*myImage );
-    QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage(myImage->getImage()));
     QGraphicsScene *scene = new QGraphicsScene();
+    QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage(myImage->getImage()));
     scene->addItem(item);
     ui->graphicsView->setScene(scene);
 }
@@ -227,182 +228,16 @@ void MainWindow::on_contrastChange_clicked()
     ui->graphicsView->setScene(scene);
 }
 
-void MainWindow::on_Test1_clicked()
-{
-    auto b = testRotate(*myImage);
-    int h = 0;
-}
-
-
-float MainWindow::testBrightness( CImage& _myImage )
+float MainWindow::testImage( float _min, float _max,float _step, CImage& _myImage,TypeChange _type, bool _testDes )
 {
     std::vector<QPoint> pointsImageFirst;
-    switch( (mtPointDetector)ui->PointDetector->currentIndex())
+    setInterestPoints( pointsImageFirst, _myImage );
+    if(_testDes)
     {
-        case mtMoravec:
-            pointsImageFirst = myImageHandler.moravec( _myImage, 5000, 3, 3, false, 0 );
-            break;
-        case mtHarrison:
-            pointsImageFirst = myImageHandler.harris( _myImage, 397700000, 0.06, true, 100 );
-            break;
-    }
-    float procent = 0;
-    for( float curBrightness = ui->MinBrightness->value() ; curBrightness < ui->MaxBrightness->value(); curBrightness += ui->stepBrightnessChange->value()  )
-    {
-        CImage temp = _myImage;
-        myImageHandler.brightnessChange( temp, curBrightness );
-        temp.normalizeImage();
-        std::vector<QPoint> pointsImageSecond;
-        switch( (mtPointDetector)ui->PointDetector->currentIndex())
-        {
-            case mtMoravec:
-                pointsImageSecond = myImageHandler.moravec( temp, 5000, 3, 3, false, 0 );
-                break;
-            case mtHarrison:
-                pointsImageSecond = myImageHandler.harris( temp, 397700000, 0.06, true, 100 );
-                break;
-        }
-        int col = 0;
-        for( int i = 0; i < pointsImageFirst.size(); i++ )
-        {
-            auto p1 = pointsImageFirst[i];
-            for( int j = 0; j < pointsImageSecond.size(); j++ )
-            {
-                auto p2 = pointsImageSecond[j];
-                if( abs( p1.x() - p2.x() ) <= 2 && abs( p1.y() - p2.y() ) <= 2 )
-                {
-                    col++;
-                    pointsImageSecond.erase( pointsImageSecond.begin() + j );
-                    break;
-                }
-            }
-        }
-        if( col != 0 )
-            procent += ( (float)col / pointsImageFirst.size() ) * 100;
+        if(ui->DescriptorsList->currentIndex() == 0)
+            myImageHandler.descriptor( _myImage, 16, 8, 16, pointsImageFirst );
         else
-            procent /= 2;
-    }
-    return procent;
-}
-
-
-float MainWindow::testContrast(CImage& _myImage)
-{
-    std::vector<QPoint> pointsImageFirst;
-    switch( (mtPointDetector)ui->PointDetector->currentIndex())
-    {
-        case mtMoravec:
-            pointsImageFirst = myImageHandler.moravec( _myImage, 5000, 3, 3, false, 0 );
-            break;
-        case mtHarrison:
-            pointsImageFirst = myImageHandler.harris( _myImage, 397700000, 0.06, true, 100 );
-            break;
-    }
-    float procent = 0;
-    for( float curContrast = ui->MinContrast->value() ; curContrast < ui->MaxContrast->value(); curContrast += ui->stepContrastChange->value()  )
-    {
-        CImage temp = _myImage;
-        myImageHandler.contrastChange( temp, curContrast );
-        temp.normalizeImage();
-        std::vector<QPoint> pointsImageSecond;
-        switch( (mtPointDetector)ui->PointDetector->currentIndex())
-        {
-            case mtMoravec:
-                pointsImageSecond = myImageHandler.moravec( temp, 5000, 3, 3, false, 0 );
-                break;
-            case mtHarrison:
-                pointsImageSecond = myImageHandler.harris( temp, 397700000, 0.06, true, 100 );
-                break;
-        }
-        int col = 0;
-        for( int i = 0; i < pointsImageFirst.size(); i++ )
-        {
-            auto p1 = pointsImageFirst[i];
-            for( int j = 0; j < pointsImageSecond.size(); j++ )
-            {
-                auto p2 = pointsImageSecond[j];
-                if( abs( p1.x() - p2.x() ) <= 2 && abs( p1.y() - p2.y() ) <= 2 )
-                {
-                    col++;
-                    pointsImageSecond.erase( pointsImageSecond.begin() + j );
-                    break;
-                }
-            }
-        }
-        if( col != 0 )
-            procent += ( (float)col / pointsImageFirst.size() ) * 100;
-        else
-            procent /= 2;
-    }
-    return procent;
-}
-
-float MainWindow::testRotate( CImage& _myImage )
-{
-    std::vector<QPoint> pointsImageFirst;
-    switch( (mtPointDetector)ui->PointDetector->currentIndex())
-    {
-        case mtMoravec:
-            pointsImageFirst = myImageHandler.moravec( _myImage, 5000, 3, 3, false, 0 );
-            break;
-        case mtHarrison:
-            pointsImageFirst = myImageHandler.harris( _myImage, 397700000, 0.06, false, 100 );
-            break;
-    }
-    float procent = 0;
-    int count = 0;
-    for( float curAngle = ui->MinAgleRotate->value() ; curAngle < ui->MaxAgleRotate->value(); curAngle += ui->stepAgleRotateChange->value()  )
-    {
-        QImage qtemp = _myImage.getImage();
-        QTransform transform;
-        transform.rotate( curAngle );
-        qtemp = qtemp.transformed(transform);
-        transform = QImage::trueMatrix( transform, _myImage.getWidth(), _myImage.getHeight() );
-        CImage temp( qtemp.height(), qtemp.width() );
-        myImageHandler.grayScale( qtemp, temp );
-        std::vector<QPoint> pointsImageSecond;
-        switch( (mtPointDetector)ui->PointDetector->currentIndex())
-        {
-            case mtMoravec:
-                pointsImageSecond = myImageHandler.moravec( temp, 5000, 3, 3, false, 0 );
-                break;
-            case mtHarrison:
-                pointsImageSecond = myImageHandler.harris( temp, 397700000, 0.06, false, 100 );
-                break;
-        }
-        int col = 0;
-        for( int i = 0; i < pointsImageFirst.size(); i++ )
-        {
-            auto p1 = pointsImageFirst[i];
-            p1 = transform.map( p1 );
-            for( int j = 0; j < pointsImageSecond.size(); j++ )
-            {
-                auto p2 = pointsImageSecond[j];
-                if( abs( p1.x() - p2.x() ) <= 2 && abs( p1.y() - p2.y() ) <= 2 )
-                {
-                    col++;
-                    pointsImageSecond.erase( pointsImageSecond.begin() + j );
-                    break;
-                }
-            }
-        }
-        procent += ( (float)col / pointsImageFirst.size() ) * 100;
-        count++;
-    }
-    return procent / count;
-}
-
-float MainWindow::testImage( float _min, float _max,float _step, CImage& _myImage,TypeChange _type )
-{
-    std::vector<QPoint> pointsImageFirst;
-    switch( (mtPointDetector)ui->PointDetector->currentIndex())
-    {
-        case mtMoravec:
-            pointsImageFirst = myImageHandler.moravec( _myImage, 5000, 3, 3, false, 0 );
-            break;
-        case mtHarrison:
-            pointsImageFirst = myImageHandler.harris( _myImage, 397700000, 0.06, false, 100 );
-            break;
+            myImageHandler.descriptorRotation( _myImage, 16, pointsImageFirst );
     }
     float procent = 0;
     int count = 0;
@@ -464,63 +299,72 @@ float MainWindow::testImage( float _min, float _max,float _step, CImage& _myImag
 
         case scale:
         {
-            transform.scale(1,1);
+            transform.scale(value,value);
             qtemp = qtemp.transformed(transform);
             transform = QImage::trueMatrix( transform, _myImage.getWidth(), _myImage.getHeight() );
             temp.setSize( qtemp.height(), qtemp.width() );
             myImageHandler.grayScale( qtemp, temp );
+            break;
         }
 
         }
+
         std::vector<QPoint> pointsImageSecond;
-        setInterestPoints(pointsImageSecond,temp);
-        switch( (mtPointDetector)ui->PointDetector->currentIndex())
-        {
-            case mtMoravec:
-                pointsImageSecond = myImageHandler.moravec( temp, 5000, 3, 3, false, 0 );
-                break;
-            case mtHarrison:
-                pointsImageSecond = myImageHandler.harris( temp, 397700000, 0.06, false, 100 );
-                break;
-        }
+        setInterestPoints( pointsImageSecond,temp );
         int col = 0;
-        for( int i = 0; i < pointsImageFirst.size(); i++ )
+        if( _testDes )
         {
-            auto p1 = pointsImageFirst[i];
-            switch (_type)
+            if(ui->DescriptorsList->currentIndex() == 0)
+                myImageHandler.descriptor( temp, 16, 8, 16, pointsImageSecond );
+            else
+                myImageHandler.descriptorRotation( temp, 16, pointsImageSecond );
+            auto des = myImageHandler.imageComparison( _myImage, temp, true, 0.8 );
+            if( des.size() != 0 )
             {
-            case scale:
-            case affin:
-            case rotate:
-            {
-                p1 = transform.map( p1 );
-                break;
+                col = compareDes(des,_type,transform);
+                procent += ( (float)col / des.size() ) * 100;
             }
-            case shift:
+        }
+        else
+        {
+            for( int i = 0; i < pointsImageFirst.size(); i++ )
             {
-                p1.setX(p1.x() + 1);
-                p1.setY(p1.y() + 1);
-                break;
-            }
-            }
-            for( int j = 0; j < pointsImageSecond.size(); j++ )
-            {
-                auto p2 = pointsImageSecond[j];
-                if( abs( p1.x() - p2.x() ) <= 2 && abs( p1.y() - p2.y() ) <= 2 )
+                auto p1 = pointsImageFirst[i];
+                switch (_type)
                 {
-                    col++;
-                    pointsImageSecond.erase( pointsImageSecond.begin() + j );
+                case scale:
+                case affin:
+                case rotate:
+                {
+                    p1 = transform.map( p1 );
                     break;
                 }
+                case shift:
+                {
+                    p1.setX(p1.x() + 1);
+                    p1.setY(p1.y() + 1);
+                    break;
+                }
+                }
+                for( int j = 0; j < pointsImageSecond.size(); j++ )
+                {
+                    auto p2 = pointsImageSecond[j];
+                    if( abs( p1.x() - p2.x() ) <= 2 && abs( p1.y() - p2.y() ) <= 2 )
+                    {
+                        col++;
+                        pointsImageSecond.erase( pointsImageSecond.begin() + j );
+                        break;
+                    }
+                }
+                procent += ( (float)col / pointsImageFirst.size() ) * 100;
             }
         }
-        procent += ( (float)col / pointsImageFirst.size() ) * 100;
         count++;
     }
     return procent / count;
 }
 
-void MainWindow::setInterestPoints(std::vector<QPoint>& _vector,const CImage& _myImage)
+void MainWindow::setInterestPoints(std::vector<QPoint>& _vector,CImage& _myImage)
 {
     switch( (mtPointDetector)ui->PointDetector->currentIndex())
     {
@@ -528,13 +372,76 @@ void MainWindow::setInterestPoints(std::vector<QPoint>& _vector,const CImage& _m
             _vector = myImageHandler.moravec( _myImage, 5000, 3, 3, false, 0 );
             break;
         case mtHarrison:
-            _vector = myImageHandler.harris( _myImage, 397700000, 0.06, false, 100 );
+            myImageHandler.gaussianBlur( 1.8, _myImage, mtBlackEdge );
+            _vector = myImageHandler.harris( _myImage, 397700000, 0.06, true, 100 );
             break;
     }
 }
 
+//-----------------------------------------------------------------------------------
+int MainWindow::compareDes( const std::vector<std::pair<CDescriptor,CDescriptor>>& des,TypeChange _type, QTransform& _trasform )
+{
+    int col = 0;
+    for( int i = 0; i < des.size(); i++ )
+    {
+        QPoint p1 = des[i].first.getInterestPoint();
+        QPoint p2 = des[i].second.getInterestPoint();
+        switch (_type)
+        {
+        case scale:
+        case affin:
+        case rotate:
+        {
+            p1 = _trasform.map( p1 );
+            break;
+        }
+        case shift:
+        {
+            p1.setX(p1.x() + 1);
+            p1.setY(p1.y() + 1);
+            break;
+        }
+        }
+        if( abs( p1.x() - p2.x() ) <= 2 && abs( p1.y() - p2.y() ) <= 2 )
+        {
+            col++;
+        }
+    }
+    return col;
+}
+
 void MainWindow::on_TestRotate_clicked()
 {
-    float result = testRotate(*myImage);
+    float result = testImage(ui->MinAgleRotate->value(),ui->MaxAgleRotate->value(),ui->stepAgleRotateChange->value(),*myImage,rotate, ui->TestDescriptors->isChecked() );
     QMessageBox::information(this,"Результат","Устойчив на " + QString::number( result ) + " процентов к поворотам изображения",QMessageBox::StandardButton::Ok);
+}
+
+void MainWindow::on_TestNoise_clicked()
+{
+    float result = testImage(ui->MinNoise->value(),ui->MaxNoise->value(),ui->stepNoiseChange->value(),*myImage, noise, ui->TestDescriptors->isChecked() );
+    QMessageBox::information(this,"Результат","Устойчив на " + QString::number( result ) + " процентов к шуму",QMessageBox::StandardButton::Ok);
+}
+
+void MainWindow::on_TestScale_clicked()
+{
+    float result = testImage( ui->MinScale->value(), ui->MaxScale->value(), ui->stepScaleChange->value(), *myImage, scale, ui->TestDescriptors->isChecked() );
+    QMessageBox::information( this,"Результат","Устойчив на " + QString::number( result ) + " процентов к изменению масштаба",QMessageBox::StandardButton::Ok );
+}
+
+void MainWindow::on_TestBrightness_clicked()
+{
+    float result = testImage( ui->MinBrightness->value(), ui->MaxBrightness->value(), ui->stepBrightnessChange->value(), *myImage, brightness, ui->TestDescriptors->isChecked() );
+    QMessageBox::information( this,"Результат","Устойчив на " + QString::number( result ) + " процентов к изменению яркости", QMessageBox::StandardButton::Ok );
+}
+
+void MainWindow::on_TestContrast_clicked()
+{
+    float result = testImage( ui->MinContrast->value(), ui->MaxContrast->value(), ui->stepContrastChange->value(), *myImage, contrast, ui->TestDescriptors->isChecked() );
+    QMessageBox::information( this,"Результат","Устойчив на " + QString::number( result ) + " процентов к изменению контраста", QMessageBox::StandardButton::Ok );
+}
+
+void MainWindow::on_TestShift_clicked()
+{
+    float result = testImage( ui->MinShiftX->value(), ui->MaxShiftX->value(), ui->stepShiftChangeX->value(), *myImage, shift, ui->TestDescriptors->isChecked() );
+    QMessageBox::information( this,"Результат","Устойчив на " + QString::number( result ) + " процентов к изменению яркости", QMessageBox::StandardButton::Ok );
 }

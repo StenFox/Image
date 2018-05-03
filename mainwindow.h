@@ -57,9 +57,17 @@ private slots:
 
     void on_contrastChange_clicked();
 
-    void on_Test1_clicked();
-
     void on_TestRotate_clicked();
+
+    void on_TestNoise_clicked();
+
+    void on_TestScale_clicked();
+
+    void on_TestBrightness_clicked();
+
+    void on_TestContrast_clicked();
+
+    void on_TestShift_clicked();
 
 private:
     CImage* myImage;
@@ -72,13 +80,9 @@ private:
     CPyramid myPyramidImage;
     Ui::MainWindow *ui;
 
-    float testBrightness( CImage& _myImage );
-    float testRotate( CImage& _myImage );
-    float testContrast(CImage& _myImage);
-
-
-    float testImage( float _min, float _max,float _step, CImage& _myImage,TypeChange _type );
-    void setInterestPoints(std::vector<QPoint>& _vector,const CImage& _myImage);
+    float testImage( float _min, float _max,float _step, CImage& _myImage,TypeChange _type, bool _testDes );
+    void setInterestPoints( std::vector<QPoint>& _vector,CImage& _myImage );
+    int compareDes( const std::vector<std::pair<CDescriptor,CDescriptor>>& des,TypeChange _type, QTransform& _trasform );
 };
 
 #endif // MAINWINDOW_H
