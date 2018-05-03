@@ -83,6 +83,7 @@ private:
     float testImage( float _min, float _max,float _step, CImage& _myImage,TypeChange _type, bool _testDes );
     void setInterestPoints( std::vector<QPoint>& _vector,CImage& _myImage );
     int compareDes( const std::vector<std::pair<CDescriptor,CDescriptor>>& des,TypeChange _type, QTransform& _trasform );
+    CImage transformImage(CImage& _myImage,TypeChange _type, float value, QTransform& transform  );
 };
 
 #endif // MAINWINDOW_H

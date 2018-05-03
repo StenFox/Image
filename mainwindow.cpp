@@ -243,72 +243,9 @@ float MainWindow::testImage( float _min, float _max,float _step, CImage& _myImag
     int count = 0;
     for( float value = _min ; value < _max; value += _step  )
     {
-        QImage qtemp = _myImage.getImage();
+
         QTransform transform;
-        CImage temp;
-        switch (_type)
-        {
-        case rotate:
-        {
-            transform.rotate( value );
-            qtemp = qtemp.transformed(transform);
-            transform = QImage::trueMatrix( transform, _myImage.getWidth(), _myImage.getHeight() );
-            temp.setSize( qtemp.height(), qtemp.width() );
-            myImageHandler.grayScale( qtemp, temp );
-            break;
-        }
-        case brightness:
-        {
-            temp = _myImage;
-            myImageHandler.brightnessChange( temp, value );
-            temp.normalizeImage();
-            break;
-        }
-        case contrast:
-        {
-            temp = _myImage;
-            myImageHandler.contrastChange( temp, value );
-            temp.normalizeImage();
-            break;
-        }
-        case shift:
-        {
-            temp = _myImage;
-            myImageHandler.shiftImage( temp, value, value );
-            temp.normalizeImage();
-            break;
-        }
-        case affin:
-        {
-            transform.setMatrix(ui->m11->value(),ui->m12->value(),ui->m13->value()
-                                ,ui->m21->value(),ui->m22->value(),ui->m23->value()
-                                ,ui->m31->value(),ui->m32->value(),ui->m33->value());
-            qtemp = qtemp.transformed(transform);
-            transform = QImage::trueMatrix( transform, _myImage.getWidth(), _myImage.getHeight() );
-            temp.setSize( qtemp.height(), qtemp.width() );
-            myImageHandler.grayScale( qtemp, temp );
-            break;
-        }
-        case noise:
-        {
-            temp = _myImage;
-            myImageHandler.addNoise( temp );
-            temp.normalizeImage();
-            break;
-        }
-
-        case scale:
-        {
-            transform.scale(value,value);
-            qtemp = qtemp.transformed(transform);
-            transform = QImage::trueMatrix( transform, _myImage.getWidth(), _myImage.getHeight() );
-            temp.setSize( qtemp.height(), qtemp.width() );
-            myImageHandler.grayScale( qtemp, temp );
-            break;
-        }
-
-        }
-
+        CImage temp = transformImage(_myImage,_type,value,transform);
         std::vector<QPoint> pointsImageSecond;
         setInterestPoints( pointsImageSecond,temp );
         int col = 0;
@@ -408,6 +345,76 @@ int MainWindow::compareDes( const std::vector<std::pair<CDescriptor,CDescriptor>
         }
     }
     return col;
+}
+
+CImage MainWindow::transformImage(CImage& _myImage,TypeChange _type, float value, QTransform& transform)
+{
+    CImage temp;
+    switch (_type)
+    {
+        case rotate:
+        {
+            QImage qtemp = _myImage.getImage();
+            transform.rotate( value );
+            qtemp = qtemp.transformed(transform);
+            transform = QImage::trueMatrix( transform, _myImage.getWidth(), _myImage.getHeight() );
+            temp.setSize( qtemp.height(), qtemp.width() );
+            myImageHandler.grayScale( qtemp, temp );
+            break;
+        }
+        case brightness:
+        {
+            temp = _myImage;
+            myImageHandler.brightnessChange( temp, value );
+            temp.normalizeImage();
+            break;
+        }
+        case contrast:
+        {
+            temp = _myImage;
+            myImageHandler.contrastChange( temp, value );
+            temp.normalizeImage();
+            break;
+        }
+        case shift:
+        {
+            temp = _myImage;
+            myImageHandler.shiftImage( temp, value, value );
+            temp.normalizeImage();
+            break;
+        }
+        case affin:
+        {
+            QImage qtemp = _myImage.getImage();
+            transform.setMatrix(ui->m11->value(),ui->m12->value(),ui->m13->value()
+                                ,ui->m21->value(),ui->m22->value(),ui->m23->value()
+                                ,ui->m31->value(),ui->m32->value(),ui->m33->value());
+            qtemp = qtemp.transformed(transform);
+            transform = QImage::trueMatrix( transform, _myImage.getWidth(), _myImage.getHeight() );
+            temp.setSize( qtemp.height(), qtemp.width() );
+            myImageHandler.grayScale( qtemp, temp );
+            break;
+        }
+        case noise:
+        {
+            temp = _myImage;
+            myImageHandler.addNoise( temp );
+            temp.normalizeImage();
+            break;
+        }
+
+        case scale:
+        {
+            QImage qtemp = _myImage.getImage();
+            transform.scale(value,value);
+            qtemp = qtemp.transformed(transform);
+            transform = QImage::trueMatrix( transform, _myImage.getWidth(), _myImage.getHeight() );
+            temp.setSize( qtemp.height(), qtemp.width() );
+            myImageHandler.grayScale( qtemp, temp );
+            break;
+        }
+    }
+    return temp;
 }
 
 void MainWindow::on_TestRotate_clicked()
