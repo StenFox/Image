@@ -294,6 +294,7 @@ float MainWindow::testImage( float _min, float _max,float _step, CImage& _myImag
                     }
                 }
                 procent += ( (float)col / pointsImageFirst.size() ) * 100;
+                col = 0;
             }
         }
         count++;
