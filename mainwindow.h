@@ -69,6 +69,8 @@ private slots:
 
     void on_TestShift_clicked();
 
+    void on_TestContrast_3_clicked();
+
 private:
     CImage* myImage;
     CImage* newImage;

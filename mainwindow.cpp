@@ -243,9 +243,8 @@ float MainWindow::testImage( float _min, float _max,float _step, CImage& _myImag
     int count = 0;
     for( float value = _min ; value < _max; value += _step  )
     {
-
         QTransform transform;
-        CImage temp = transformImage(_myImage,_type,value,transform);
+        CImage temp = transformImage(_myImage, _type, value, transform );
         std::vector<QPoint> pointsImageSecond;
         setInterestPoints( pointsImageSecond,temp );
         int col = 0;
@@ -311,7 +310,7 @@ void MainWindow::setInterestPoints(std::vector<QPoint>& _vector,CImage& _myImage
             break;
         case mtHarrison:
             myImageHandler.gaussianBlur( 1.8, _myImage, mtBlackEdge );
-            _vector = myImageHandler.harris( _myImage, 397700000, 0.06, true, 100 );
+            _vector = myImageHandler.harris( _myImage, 397700000, 0.06, ui->TestDescriptors->isChecked(), 100 );
             break;
     }
 }
@@ -452,4 +451,10 @@ void MainWindow::on_TestShift_clicked()
 {
     float result = testImage( ui->MinShiftX->value(), ui->MaxShiftX->value(), ui->stepShiftChangeX->value(), *myImage, shift, ui->TestDescriptors->isChecked() );
     QMessageBox::information( this,"Результат","Устойчив на " + QString::number( result ) + " процентов к изменению яркости", QMessageBox::StandardButton::Ok );
+}
+
+void MainWindow::on_TestContrast_3_clicked()
+{
+    float result = testImage( 0, 1, 1, *myImage, affin, ui->TestDescriptors->isChecked() );
+    QMessageBox::information( this,"Результат","Устойчив на " + QString::number( result ) + " процентов к аффинным преобразованиям", QMessageBox::StandardButton::Ok );
 }
