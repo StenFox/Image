@@ -30,8 +30,13 @@ void MainWindow::on_LoadImageButton_clicked()
 {
     QString fileName = QFileDialog::getOpenFileName( this,"Open Image",nullptr,"Image files (*.png *.jpg *.bmp)" );
     QImage img;
-    img.load(fileName);    myImage = new CImage( img.height(), img.width() );
+    img.load(fileName);
+
+    myImage = new CImage( img.height(), img.width() );
     myImageHandler.grayScale( img ,*myImage );
+
+    //myImageHandler.addNoise(*myImage,100);
+
     QGraphicsScene *scene = new QGraphicsScene();
     QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage(myImage->getImage()));
     scene->addItem(item);
@@ -122,6 +127,12 @@ void MainWindow::on_loadImage1_clicked()
         CImage myimg( img.height(), img.width() );
         myImageHandler.grayScale( img ,myimg );
         myImage1 = std::move( myimg );
+        QTransform t;
+        t.rotate(60);
+        img = img.transformed(t);
+        CImage myimg1( img.height(), img.width() );
+        myImageHandler.grayScale( img ,myimg1 );
+        myImage2 = std::move( myimg1 );
     }
 }
 
@@ -182,12 +193,12 @@ void MainWindow::on_CompareImageRotate_clicked()
 
     temp1 = myImage1;
     myImageHandler.gaussianBlur( 2, temp1, mtBlackEdge );
-    auto pointsImageFirst = myImageHandler.harris( temp1, 397700000, 0.06, true, 100 );
+    auto pointsImageFirst = myImageHandler.harris( temp1, 397700000, 0.06, true, 400 );
     myImageHandler.descriptorRotation( myImage1, 16, pointsImageFirst );
 
     temp2 = myImage2;
     myImageHandler.gaussianBlur( 2, temp2, mtBlackEdge );
-    auto pointsImageSecond = myImageHandler.harris( temp2, 397700000, 0.06, true, 100 );
+    auto pointsImageSecond = myImageHandler.harris( temp2, 397700000, 0.06, true, 400 );
     myImageHandler.descriptorRotation( myImage2, 16, pointsImageSecond );
 
     auto des = myImageHandler.imageComparison( myImage1, myImage2, false, 0.8 );
@@ -232,6 +243,22 @@ float MainWindow::testImage( float _min, float _max,float _step, CImage& _myImag
 {
     std::vector<QPoint> pointsImageFirst;
     setInterestPoints( pointsImageFirst, _myImage );
+    std::vector<QPoint> points;
+    for( int y = 0; y < _myImage.getHeight(); y++ )
+    {
+        for( int x = 0; x < _myImage.getWidth(); x++ )
+        {
+            if( x==0 )
+                points.push_back( QPoint(x,y) );
+            else if( y == 0)
+                points.push_back( QPoint(x,y) );
+            else if(x == _myImage.getWidth() - 1 )
+                points.push_back( QPoint(x,y) );
+            else if(y == _myImage.getHeight() - 1 )
+                points.push_back( QPoint(x,y) );
+        }
+    }
+
     if(_testDes)
     {
         if(ui->DescriptorsList->currentIndex() == 0)
@@ -257,7 +284,7 @@ float MainWindow::testImage( float _min, float _max,float _step, CImage& _myImag
             auto des = myImageHandler.imageComparison( _myImage, temp, true, 0.8 );
             if( des.size() != 0 )
             {
-                col = compareDes(des,_type,transform);
+                col = compareDes(des,_type,transform,value);
                 procent += ( (float)col / des.size() ) * 100;
             }
         }
@@ -277,8 +304,8 @@ float MainWindow::testImage( float _min, float _max,float _step, CImage& _myImag
                 }
                 case shift:
                 {
-                    p1.setX(p1.x() + 1);
-                    p1.setY(p1.y() + 1);
+                    p1.setX( p1.x() + value );
+                    p1.setY( p1.y() + value );
                     break;
                 }
                 }
@@ -301,6 +328,25 @@ float MainWindow::testImage( float _min, float _max,float _step, CImage& _myImag
     return procent / count;
 }
 
+void MainWindow::filtrate(std::vector<QPoint>& _filtr,std::vector<QPoint>& _points, QTransform& transform)
+{
+    for( int y = 0; y < _filtr.size(); y++ )
+    {
+        auto p1 = _filtr[y];
+        p1 = transform.map(p1);
+        for( int x = 0; x < _points.size(); x++ )
+        {
+            auto p2 = _points[x];
+            if( abs( p1.x() - p2.x() ) <= 2 && abs( p1.y() - p2.y() ) <= 2 )
+            {
+                _points.erase(_points.begin() + x);
+                break;
+            }
+
+        }
+    }
+}
+
 void MainWindow::setInterestPoints(std::vector<QPoint>& _vector,CImage& _myImage)
 {
     switch( (mtPointDetector)ui->PointDetector->currentIndex())
@@ -309,14 +355,15 @@ void MainWindow::setInterestPoints(std::vector<QPoint>& _vector,CImage& _myImage
             _vector = myImageHandler.moravec( _myImage, 5000, 3, 3, false, 0 );
             break;
         case mtHarrison:
-            myImageHandler.gaussianBlur( 1.8, _myImage, mtBlackEdge );
-            _vector = myImageHandler.harris( _myImage, 397700000, 0.06, ui->TestDescriptors->isChecked(), 100 );
+            CImage temp = _myImage;
+            myImageHandler.gaussianBlur( 2, temp, mtBlackEdge );
+            _vector = myImageHandler.harris( temp, 497700000, 0.06, true, 500 );
             break;
     }
 }
 
 //-----------------------------------------------------------------------------------
-int MainWindow::compareDes( const std::vector<std::pair<CDescriptor,CDescriptor>>& des,TypeChange _type, QTransform& _trasform )
+int MainWindow::compareDes( const std::vector<std::pair<CDescriptor,CDescriptor>>& des,TypeChange _type, QTransform& _trasform, float value )
 {
     int col = 0;
     for( int i = 0; i < des.size(); i++ )
@@ -334,12 +381,12 @@ int MainWindow::compareDes( const std::vector<std::pair<CDescriptor,CDescriptor>
         }
         case shift:
         {
-            p1.setX(p1.x() + 1);
-            p1.setY(p1.y() + 1);
+            p1.setX(p1.x() + value );
+            p1.setY(p1.y() + value );
             break;
         }
         }
-        if( abs( p1.x() - p2.x() ) <= 2 && abs( p1.y() - p2.y() ) <= 2 )
+        if( abs( p1.x() - p2.x() ) <= 16 && abs( p1.y() - p2.y() ) <= 16 )
         {
             col++;
         }
@@ -398,7 +445,7 @@ CImage MainWindow::transformImage(CImage& _myImage,TypeChange _type, float value
         case noise:
         {
             temp = _myImage;
-            myImageHandler.addNoise( temp );
+            myImageHandler.addNoise( temp, value );
             temp.normalizeImage();
             break;
         }
@@ -450,7 +497,7 @@ void MainWindow::on_TestContrast_clicked()
 void MainWindow::on_TestShift_clicked()
 {
     float result = testImage( ui->MinShiftX->value(), ui->MaxShiftX->value(), ui->stepShiftChangeX->value(), *myImage, shift, ui->TestDescriptors->isChecked() );
-    QMessageBox::information( this,"Результат","Устойчив на " + QString::number( result ) + " процентов к изменению яркости", QMessageBox::StandardButton::Ok );
+    QMessageBox::information( this,"Результат","Устойчив на " + QString::number( result ) + " процентов к сдвигам", QMessageBox::StandardButton::Ok );
 }
 
 void MainWindow::on_TestContrast_3_clicked()

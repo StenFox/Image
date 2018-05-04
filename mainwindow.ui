@@ -241,6 +241,9 @@
       <property name="minimum">
        <double>-180.000000000000000</double>
       </property>
+      <property name="maximum">
+       <double>360.000000000000000</double>
+      </property>
       <property name="value">
        <double>30.000000000000000</double>
       </property>
@@ -800,6 +803,9 @@
         <height>22</height>
        </rect>
       </property>
+      <property name="maximum">
+       <number>300</number>
+      </property>
       <property name="value">
        <number>50</number>
       </property>
@@ -812,6 +818,9 @@
         <width>81</width>
         <height>22</height>
        </rect>
+      </property>
+      <property name="maximum">
+       <number>300</number>
       </property>
       <property name="value">
        <number>10</number>

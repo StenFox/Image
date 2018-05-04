@@ -621,7 +621,7 @@ void CImageHandler::descriptorRotation( CImage& _myImage, int _ambit, const vect
 //-----------------------------------------------------------------------------------
 vector<float> CImageHandler::pointOrientation( const CImage& _direction,const CImage& _value, const QPoint& _point, int _radius )
 {
-    const float sigma = 15;
+    const float sigma = 20;
     CHistogram his( 36 );
     for( int y = -_radius; y < _radius; y++ )
     {

@@ -136,5 +136,6 @@ float CHistogram::basketIterpolation( const int _index )
     auto left = m_histogramms.at( ( _index - 1 + size ) % size );
     auto right = m_histogramms.at( ( _index + 1 ) % size );
     auto mid = m_histogramms.at( _index );
-    return ( left - right ) / ( 2 * ( left + right - 2 * mid ) );
+    auto phi = ( left - right ) / ( 2 * ( left + right - 2 * mid ) );
+    return  ( phi + _index ) * size + (2 * M_PI / size)/2;
 }

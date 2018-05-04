@@ -108,13 +108,13 @@ public:
         _myImage = temp;
     }
 
-    void addNoise(CImage& _myImage)
+    void addNoise(CImage& _myImage, int val)
     {
         for( int y = 0; y < _myImage.getHeight(); y++ )
         {
             for( int x = 0; x < _myImage.getWidth(); x++ )
             {
-                int g = rand()%10;
+                int g = rand()%val;
                 if( g == 0 )
                     _myImage.setItem( x, y, _myImage.getItem( y,x ) + rand()%255 );
             }
